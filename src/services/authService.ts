@@ -1,0 +1,38 @@
+import { apiClient } from "@/lib/axios";
+import type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  User,
+  InviteDetails,
+} from "@/types/auth";
+
+export const authService = {
+  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>("/auth/register", data);
+    return response.data;
+  },
+
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>("/auth/login", data);
+    return response.data;
+  },
+
+  logout: async (): Promise<void> => {
+    await apiClient.post("/auth/logout");
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    const response = await apiClient.get<User>("/auth/me");
+    return response.data;
+  },
+
+  getInviteDetails: async (code: string): Promise<InviteDetails> => {
+    const response = await apiClient.get<InviteDetails>(`/team/invite/${code}`);
+    return response.data;
+  },
+
+  acceptInvite: async (code: string): Promise<void> => {
+    await apiClient.post(`/team/invite/${code}/accept`);
+  },
+};
