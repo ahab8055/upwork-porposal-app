@@ -1,8 +1,8 @@
-import { apiClient } from '@/lib/api-client';
-import type { LoginFormData, SignupFormData, User } from '@/types/auth';
+import { apiClient } from '@/lib/axios';
+import type { LoginRequest, RegisterRequest, User } from '@/types/auth';
 
 export const authService = {
-  login: async (credentials: LoginFormData) => {
+  login: async (credentials: LoginRequest) => {
     const response = await apiClient.post<{
       user: User;
       access_token: string;
@@ -10,7 +10,7 @@ export const authService = {
     return response.data;
   },
 
-  signup: async (data: SignupFormData) => {
+  signup: async (data: RegisterRequest) => {
     const response = await apiClient.post<{
       user: User;
       access_token: string;

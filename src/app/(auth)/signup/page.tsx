@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Zap, Mail, Lock, Eye, EyeOff, User, Users } from "lucide-react";
 import { useRegister, useInviteDetails, useAcceptInvite } from "@/hooks/useAuth";
 import { signupSchema } from "@/lib/validations/auth";
 
-export default function SignupPage() {
+function SignupForm() {
   const searchParams = useSearchParams();
   const registerMutation = useRegister();
   const acceptInviteMutation = useAcceptInvite();
@@ -258,5 +258,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }
