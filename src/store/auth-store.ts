@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { setAuthCookie, removeAuthCookie } from '@/lib/cookies';
 
 export interface User {
   id: string;
@@ -8,6 +9,7 @@ export interface User {
   user_id?: string;
   role?: string;
   picture?: string;
+  onboarding_completed?: boolean;
 }
 
 interface AuthState {
@@ -37,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
         });
         if (accessToken) {
           localStorage.setItem('token', accessToken);
+          setAuthCookie(accessToken);
         }
       },
 
@@ -47,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
         });
         localStorage.removeItem('token');
+        removeAuthCookie();
       },
 
       setLoading: (loading: boolean) => {

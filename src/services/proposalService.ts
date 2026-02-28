@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/axios";
-import type { Proposal } from "@/types/dashboard";
+import type { Proposal, ProposalStats } from "@/types/dashboard";
 import type {
   AnalyzeJobRequest,
   JobAnalysis,
@@ -56,6 +56,18 @@ export const proposalService = {
 
   updateProposal: async (id: number, data: UpdateProposalRequest): Promise<Proposal> => {
     const response = await apiClient.put<Proposal>(`/proposals/${id}`, data);
+    return response.data;
+  },
+
+  getProposalStats: async (): Promise<ProposalStats> => {
+    const response = await apiClient.get<ProposalStats>("/proposals/stats");
+    return response.data;
+  },
+
+  exportProposals: async (format: "csv" | "json" = "csv"): Promise<Blob> => {
+    const response = await apiClient.get(`/proposals/export?format=${format}`, {
+      responseType: "blob",
+    });
     return response.data;
   },
 };

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/auth-store";
+import { removeAuthCookie } from "@/lib/cookies";
 import type { LoginRequest, RegisterRequest } from "@/types/auth";
 import { AxiosError } from "axios";
 
@@ -15,7 +16,7 @@ export function useRegister() {
     onSuccess: (data) => {
       login(data.user, data.access_token);
       toast.success("Account created successfully!");
-      router.push("/dashboard");
+      router.push("/onboarding");
     },
     onError: (error: AxiosError<{ detail?: string }>) => {
       const message = error.response?.data?.detail || "Registration failed";
@@ -33,7 +34,12 @@ export function useLogin() {
     onSuccess: (data) => {
       login(data.user, data.access_token);
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      // Redirect based on onboarding status
+      if (data.user.onboarding_completed) {
+        router.push("/dashboard");
+      } else {
+        router.push("/onboarding");
+      }
     },
     onError: (error: AxiosError<{ detail?: string }>) => {
       const message = error.response?.data?.detail || "Login failed";
@@ -50,12 +56,14 @@ export function useLogout() {
     mutationFn: () => authService.logout(),
     onSuccess: () => {
       logout();
+      removeAuthCookie();
       router.push("/login");
       toast.success("Logged out successfully!");
     },
     onError: () => {
       // Logout locally even if API call fails
       logout();
+      removeAuthCookie();
       router.push("/login");
     },
   });

@@ -1,30 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useLogout } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   FolderOpen,
-  FileText,
   Users,
   Settings,
   LogOut,
   Zap,
   Plus,
   Menu,
-  ChevronDown,
+  BarChart3,
+  CreditCard,
+  History,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -32,14 +26,25 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const logoutMutation = useLogout();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Redirect to onboarding if user hasn't completed it
+  useEffect(() => {
+    if (isAuthenticated && user && user.onboarding_completed === false) {
+      router.push("/onboarding");
+    }
+  }, [isAuthenticated, user, router]);
 
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { path: "/knowledge-base", label: "Knowledge Base", icon: <FolderOpen className="w-5 h-5" /> },
-    { path: "/proposals", label: "Proposals", icon: <FileText className="w-5 h-5" /> },
+    { path: "/proposals", label: "Proposal History", icon: <History className="w-5 h-5" /> },
+    { path: "/analytics", label: "Analytics", icon: <BarChart3 className="w-5 h-5" /> },
+    { path: "/subscription", label: "Subscription", icon: <CreditCard className="w-5 h-5" /> },
     { path: "/team", label: "Team", icon: <Users className="w-5 h-5" /> },
     { path: "/settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
@@ -112,43 +117,36 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             ))}
           </nav>
 
-          {/* User Menu */}
-          <div className="p-4 border-t border-slate-200">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 transition-colors">
-                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-medium text-blue-600">
-                      {user?.name?.charAt(0)?.toUpperCase() || "?"}
-                    </span>
-                  </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-slate-900 truncate">
-                      {user?.name}
-                    </p>
-                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-red-600 cursor-pointer"
-                  data-testid="dropdown-logout-btn"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* Bottom Section: User Info & Logout */}
+          <div className="border-t border-slate-200">
+            {/* User Info */}
+            <div className="p-4 pb-2">
+              <div className="flex items-center gap-3 p-2">
+                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <span className="text-sm font-medium text-blue-600">
+                    {user?.name?.charAt(0)?.toUpperCase() || "?"}
+                  </span>
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-sm font-medium text-slate-900 truncate">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Logout Button */}
+            <div className="px-3 pb-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                data-testid="sidebar-logout-btn"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>

@@ -108,3 +108,31 @@ export const useUpdateProposal = () => {
     },
   });
 };
+
+export const useProposalStats = () => {
+  return useQuery({
+    queryKey: ["proposalStats"],
+    queryFn: () => proposalService.getProposalStats(),
+  });
+};
+
+export const useExportProposals = () => {
+  return useMutation({
+    mutationFn: (format: "csv" | "json" = "csv") =>
+      proposalService.exportProposals(format),
+    onSuccess: (blob, format) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `proposals.${format || "csv"}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Export downloaded successfully");
+    },
+    onError: () => {
+      toast.error("Failed to export proposals");
+    },
+  });
+};

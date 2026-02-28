@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   role?: string;
+  onboarding_completed?: boolean;
 }
 
 export interface AuthResponse {

@@ -14,9 +14,10 @@ export const knowledgeBaseService = {
     return response.data;
   },
 
-  uploadDocument: async (file: File, documentType: string = "other"): Promise<Document> => {
+  uploadDocument: async (file: File, documentType: string = "other", title?: string): Promise<Document> => {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("title", title || file.name);
     formData.append("document_type", documentType);
 
     const response = await apiClient.post<Document>("/documents/upload", formData, {

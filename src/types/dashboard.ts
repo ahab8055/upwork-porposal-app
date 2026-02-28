@@ -25,3 +25,13 @@ export interface ProposalsResponse {
   proposals: Proposal[];
   total: number;
 }
+
+export interface ProposalStats {
+  total: number;
+  won: number;
+  lost: number;
+  pending: number;
+  win_rate: number;
+  lost_rate: number;
+  pending_rate: number;
+}
