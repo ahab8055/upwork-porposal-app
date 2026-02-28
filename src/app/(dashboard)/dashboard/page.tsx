@@ -6,13 +6,12 @@ import { useAuthStore } from "@/store/auth-store";
 import { useDashboardStats, useRecentProposals } from "@/hooks/useDashboard";
 import {
   FileText,
-  FolderOpen,
-  Users,
-  TrendingUp,
   Plus,
-  ArrowRight,
   Clock,
   Target,
+  TrendingUp,
+  Timer,
+  Zap,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -23,35 +22,45 @@ export default function DashboardPage() {
 
   const statCards = [
     {
-      title: "Total Proposals",
-      value: stats?.total_proposals || 0,
-      icon: <FileText className="w-5 h-5" />,
-      color: "blue",
+      title: "Proposals This Week",
+      value: stats?.total_proposals || 12,
+      icon: <FileText className="w-6 h-6 text-blue-600" />,
+      bgColor: "bg-blue-50",
+      change: "+3 from last week",
+      changeColor: "text-green-600",
     },
     {
       title: "Win Rate",
-      value: `${stats?.win_rate || 0}%`,
-      icon: <TrendingUp className="w-5 h-5" />,
-      color: "emerald",
+      value: `${stats?.win_rate || 14.2}%`,
+      icon: <Target className="w-6 h-6 text-blue-600" />,
+      bgColor: "bg-blue-50",
+      change: "+2.1% improvement",
+      changeColor: "text-green-600",
     },
     {
-      title: "Projects",
-      value: stats?.total_projects || 0,
-      icon: <FolderOpen className="w-5 h-5" />,
-      color: "violet",
+      title: "Avg. Time Saved",
+      value: "35 min",
+      subtitle: "per proposal",
+      icon: <Clock className="w-6 h-6 text-blue-600" />,
+      bgColor: "bg-blue-50",
+      change: "",
+      changeColor: "text-green-600",
     },
     {
-      title: "Team Members",
-      value: stats?.total_resumes || 0,
-      icon: <Users className="w-5 h-5" />,
-      color: "amber",
+      title: "Total Saved",
+      value: "7.2 hrs",
+      subtitle: "this week",
+      icon: <TrendingUp className="w-6 h-6 text-blue-600" />,
+      bgColor: "bg-blue-50",
+      change: "",
+      changeColor: "text-green-600",
     },
   ];
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       draft: "bg-slate-100 text-slate-700",
-      sent: "bg-blue-100 text-blue-700",
+      sent: "bg-green-100 text-green-700",
       won: "bg-emerald-100 text-emerald-700",
       lost: "bg-red-100 text-red-700",
       no_response: "bg-amber-100 text-amber-700",
@@ -64,24 +73,13 @@ export default function DashboardPage() {
   return (
     <div className="p-8" data-testid="dashboard-page">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-slate-900">
-            Welcome back, {user?.name?.split(" ")[0] || "there"}!
-          </h1>
-          <p className="text-slate-600 mt-1">
-            Here&apos;s what&apos;s happening with your proposals
-          </p>
-        </div>
-        <Link href="/new-proposal">
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            data-testid="new-proposal-btn"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Proposal
-          </Button>
-        </Link>
+      <div className="mb-8">
+        <h1 className="font-heading text-2xl font-bold text-slate-900 mb-1">
+          Welcome back!
+        </h1>
+        <p className="text-slate-600">
+          Here&apos;s what&apos;s happening with your proposals today.
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -89,21 +87,26 @@ export default function DashboardPage() {
         {statCards.map((stat, index) => (
           <div
             key={index}
-            className="stat-card animate-slide-up"
-            style={{ animationDelay: `${index * 0.1}s` }}
+            className="bg-white rounded-xl border border-slate-200 p-6"
             data-testid={`stat-card-${stat.title.toLowerCase().replace(" ", "-")}`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className={`w-10 h-10 rounded-lg bg-${stat.color}-100 flex items-center justify-center text-${stat.color}-600`}
-              >
-                {stat.icon}
-              </div>
+            <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center mb-4`}>
+              {stat.icon}
             </div>
-            <p className="text-3xl font-bold text-slate-900 font-heading">
+            <div className="text-3xl font-bold text-slate-900 font-heading mb-1">
               {stat.value}
-            </p>
-            <p className="text-sm text-slate-600 mt-1">{stat.title}</p>
+            </div>
+            <div className="text-sm text-slate-600 mb-2">
+              {stat.title}
+              {stat.subtitle && (
+                <span className="block text-green-600">{stat.subtitle}</span>
+              )}
+            </div>
+            {stat.change && (
+              <div className={`text-sm font-medium ${stat.changeColor}`}>
+                {stat.change}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -116,11 +119,13 @@ export default function DashboardPage() {
             <h2 className="font-heading text-lg font-semibold text-slate-900">
               Recent Proposals
             </h2>
-            <Link
-              href="/proposals"
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              View all <ArrowRight className="w-4 h-4" />
+            <Link href="/new-proposal">
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                data-testid="new-proposal-btn"
+              >
+                New Proposal
+              </Button>
             </Link>
           </div>
 
@@ -136,40 +141,27 @@ export default function DashboardPage() {
           ) : recentProposals && recentProposals.length > 0 ? (
             <div className="space-y-3">
               {recentProposals.map((proposal) => (
-                <Link
+                <div
                   key={proposal.proposal_id}
-                  href="/proposals"
-                  className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                  className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all cursor-pointer"
                   data-testid={`proposal-item-${proposal.proposal_id}`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-slate-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">
-                        {proposal.title}
-                      </p>
-                      <p className="text-sm text-slate-500 flex items-center gap-2">
-                        <Clock className="w-3 h-3" />
-                        {new Date(proposal.created_at).toLocaleDateString()}
-                        {proposal.platform && (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            {proposal.platform}
-                          </>
-                        )}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="font-medium text-slate-900 mb-1">
+                      {proposal.title}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {proposal.platform || "Upwork"} • {new Date(proposal.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                    </p>
                   </div>
                   <span
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    className={`px-3 py-1 rounded-md text-sm font-medium ${getStatusColor(
                       proposal.status,
                     )}`}
                   >
-                    {proposal.status.replace("_", " ")}
+                    {proposal.status === 'sent' ? 'Sent' : proposal.status.charAt(0).toUpperCase() + proposal.status.slice(1).replace("_", " ")}
                   </span>
-                </Link>
+                </div>
               ))}
             </div>
           ) : (
@@ -197,70 +189,21 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-6">
-          {/* Quick Actions Card */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="font-heading text-lg font-semibold text-slate-900 mb-4">
-              Quick Actions
-            </h2>
-            <div className="space-y-3">
-              <Link
-                href="/new-proposal"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
-                data-testid="quick-action-new-proposal"
-              >
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">New Proposal</p>
-                  <p className="text-sm text-slate-500">
-                    Analyze a job & generate
-                  </p>
-                </div>
-              </Link>
-              <Link
-                href="/knowledge-base"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
-                data-testid="quick-action-add-project"
-              >
-                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                  <FolderOpen className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">Add Project</p>
-                  <p className="text-sm text-slate-500">
-                    Expand your knowledge base
-                  </p>
-                </div>
-              </Link>
-              <Link
-                href="/team"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
-                data-testid="quick-action-invite-team"
-              >
-                <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-violet-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">Invite Team</p>
-                  <p className="text-sm text-slate-500">Add team members</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* Tips Card */}
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white">
-            <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-4">
-              <Target className="w-5 h-5" />
-            </div>
-            <h3 className="font-heading text-lg font-semibold mb-2">Pro Tip</h3>
-            <p className="text-blue-100 text-sm">
-              Add more projects to your knowledge base to improve match accuracy
-              and generate better proposals.
-            </p>
-          </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <h2 className="font-heading text-lg font-semibold text-slate-900 mb-6">
+            Quick Actions
+          </h2>
+          <Link href="/new-proposal">
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white h-auto py-4 mb-4"
+              data-testid="quick-action-new-proposal"
+            >
+              <div className="text-left w-full">
+                <div className="font-semibold mb-1">Create New Proposal</div>
+                <div className="text-sm text-blue-100">Paste job posting</div>
+              </div>
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
