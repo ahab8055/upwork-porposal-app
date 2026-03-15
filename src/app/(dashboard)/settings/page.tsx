@@ -136,9 +136,6 @@ export default function SettingsPage() {
                 <div>
                   <h4 className="font-heading text-xl font-semibold text-slate-900">{user?.name}</h4>
                   <p className="text-slate-500">{user?.email}</p>
-                  <span className="inline-block mt-2 px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                    {user?.role || "admin"}
-                  </span>
                 </div>
               </div>
 

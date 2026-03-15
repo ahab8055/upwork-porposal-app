@@ -30,14 +30,16 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { TeamRole, InviteDetails } from "@/types/team";
+import type { WorkspaceRole, InviteDetails } from "@/types/team";
 
 export default function TeamPage() {
   const user = useAuthStore((state) => state.user);
+  const getCurrentWorkspace = useAuthStore((state) => state.getCurrentWorkspace);
+  const currentWorkspace = getCurrentWorkspace();
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteLinkModalOpen, setInviteLinkModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<TeamRole>("bd");
+  const [inviteRole, setInviteRole] = useState<WorkspaceRole>("member");
   const [inviteLink, setInviteLink] = useState("");
   const [inviteDetails, setInviteDetails] = useState<InviteDetails | null>(null);
   const [copied, setCopied] = useState(false);
@@ -61,19 +63,20 @@ export default function TeamPage() {
           setInviteLink(link);
           setInviteDetails({
             email: data.invite_email,
-            workspace: data.workspace_name,
+            workspace_name: data.workspace_name,
+            invited_by: user?.name || "Team Admin",
             role: inviteRole,
           });
           setInviteModalOpen(false);
           setInviteLinkModalOpen(true);
           setInviteEmail("");
-          setInviteRole("bd");
+          setInviteRole("member");
         },
       }
     );
   };
 
-  const handleRemoveMember = async (memberId: number) => {
+  const handleRemoveMember = async (memberId: string) => {
     removeMemberMutation.mutate(memberId);
   };
 
@@ -84,28 +87,31 @@ export default function TeamPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getRoleIcon = (role: TeamRole) => {
+  const getRoleIcon = (role: WorkspaceRole) => {
     const icons = {
+      owner: <Crown className="w-4 h-4 text-purple-500" />,
       admin: <Crown className="w-4 h-4 text-amber-500" />,
-      bd: <Shield className="w-4 h-4 text-blue-500" />,
+      member: <Shield className="w-4 h-4 text-blue-500" />,
       viewer: <Eye className="w-4 h-4 text-slate-400" />,
     };
     return icons[role] || icons.viewer;
   };
 
-  const getRoleBadge = (role: TeamRole) => {
+  const getRoleBadge = (role: WorkspaceRole) => {
     const badges = {
+      owner: "bg-purple-100 text-purple-700",
       admin: "bg-amber-100 text-amber-700",
-      bd: "bg-blue-100 text-blue-700",
+      member: "bg-blue-100 text-blue-700",
       viewer: "bg-slate-100 text-slate-600",
     };
     return badges[role] || badges.viewer;
   };
 
-  const getRoleLabel = (role: TeamRole) => {
+  const getRoleLabel = (role: WorkspaceRole) => {
     const labels = {
+      owner: "Owner",
       admin: "Admin",
-      bd: "Business Developer",
+      member: "Member",
       viewer: "Viewer",
     };
     return labels[role] || role;
@@ -148,7 +154,7 @@ export default function TeamPage() {
               </div>
               <div>
                 <Label>Role</Label>
-                <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as TeamRole)}>
+                <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as WorkspaceRole)}>
                   <SelectTrigger
                     className="mt-1.5"
                     data-testid="invite-role-select"
@@ -162,10 +168,10 @@ export default function TeamPage() {
                         Admin - Full access
                       </div>
                     </SelectItem>
-                    <SelectItem value="bd">
+                    <SelectItem value="member">
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4 text-blue-500" />
-                        Business Developer - Create proposals
+                        Member - Create proposals
                       </div>
                     </SelectItem>
                     <SelectItem value="viewer">
@@ -215,7 +221,7 @@ export default function TeamPage() {
                 </span>{" "}
                 to invite them to{" "}
                 <span className="font-medium text-slate-900">
-                  {inviteDetails?.workspace}
+                  {inviteDetails?.workspace_name}
                 </span>
                 .
               </p>
@@ -258,9 +264,7 @@ export default function TeamPage() {
                   </li>
                   <li>
                     They&apos;ll automatically join your workspace as{" "}
-                    {inviteDetails?.role === "bd"
-                      ? "Business Developer"
-                      : inviteDetails?.role}
+                    {inviteDetails?.role && getRoleLabel(inviteDetails.role)}
                   </li>
                 </ol>
               </div>
@@ -347,7 +351,7 @@ export default function TeamPage() {
                 </span>
               </div>
               <div className="col-span-2 text-right">
-                {!member.is_owner && user?.role === "admin" && (
+                {!member.is_owner && (currentWorkspace?.role === "admin" || currentWorkspace?.role === "owner") && (
                   <Button
                     variant="ghost"
                     size="sm"

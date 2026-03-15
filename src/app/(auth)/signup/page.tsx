@@ -24,26 +24,21 @@ function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
 
-  // Check for invite code in URL
-  useEffect(() => {
-    const code = searchParams.get("invite");
-    if (code) {
-      setInviteCode(code);
-    }
-  }, [searchParams]);
+  // Get invite code from URL
+  const inviteCode = searchParams.get("invite");
 
   // Fetch invite details if code exists using TanStack Query
   const { data: inviteDetails } = useInviteDetails(inviteCode);
 
   // Pre-fill email from invite
   useEffect(() => {
-    if (inviteDetails?.email) {
+    if (inviteDetails?.email && !email) {
       setEmail(inviteDetails.email);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inviteDetails]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -182,7 +177,7 @@ function SignupForm() {
                       {inviteDetails.invited_by} invited you
                     </p>
                     <p className="text-sm text-blue-700">
-                      Join as {inviteDetails.role === "bd" ? "Business Developer" : inviteDetails.role} at {inviteDetails.workspace_name}
+                      Join as {inviteDetails.role.charAt(0).toUpperCase() + inviteDetails.role.slice(1)} at {inviteDetails.workspace_name}
                     </p>
                   </div>
                 </div>

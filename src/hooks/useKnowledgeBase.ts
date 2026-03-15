@@ -34,7 +34,7 @@ export const useDeleteDocument = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => knowledgeBaseService.deleteDocument(id),
+    mutationFn: (id: string) => knowledgeBaseService.deleteDocument(id),
     onSuccess: () => {
       toast.success("Document deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["documents"] });

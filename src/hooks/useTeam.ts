@@ -28,7 +28,7 @@ export const useRemoveMember = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (memberId: number) => teamService.removeMember(memberId),
+    mutationFn: (memberId: string) => teamService.removeMember(memberId),
     onSuccess: () => {
       toast.success("Member removed");
       queryClient.invalidateQueries({ queryKey: ["team"] });

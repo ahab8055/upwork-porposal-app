@@ -7,7 +7,6 @@ import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import {
   LayoutDashboard,
   FolderOpen,
-  Plus,
   History,
   BarChart3,
   CreditCard,
