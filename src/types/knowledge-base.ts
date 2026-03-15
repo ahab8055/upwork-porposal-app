@@ -1,12 +1,24 @@
+export type StorageType = "database" | "s3";
+
 export interface Document {
-  document_id: number;
+  document_id: string;
   title: string;
   document_type: string;
   file_name?: string;
   file_path?: string;
+  file_size?: number;
   extracted_skills?: string[];
   created_at: string;
   updated_at?: string;
+  storage_type: StorageType;
+  content_type?: string;
+  download_url?: string;
+}
+
+export interface DocumentDownloadResponse {
+  document_id: string;
+  download_url: string;
+  expires_in: number;
 }
 
 export interface Project {

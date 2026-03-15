@@ -15,14 +15,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Redirect to onboarding if user hasn't completed it
+  // Redirect to onboarding if user hasn't completed it or has no workspace
   useEffect(() => {
-    if (isAuthenticated && user && user.onboarding_completed === false) {
-      router.push("/onboarding");
+    if (isAuthenticated && user) {
+      const hasWorkspace = currentWorkspaceId || user.default_workspace_id || (user.workspaces && user.workspaces.length > 0);
+
+      if (user.onboarding_completed === false || !hasWorkspace) {
+        router.push("/onboarding");
+      }
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, currentWorkspaceId, router]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">

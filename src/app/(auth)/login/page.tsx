@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion, Variants } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, Variants } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 import { useLogin } from "@/hooks/useAuth";
 import { loginSchema } from "@/lib/validations/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -21,6 +21,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showVerificationWarning, setShowVerificationWarning] = useState(false);
+
+  // Check for 403 error to show verification warning
+  useEffect(() => {
+    if (loginMutation.error?.response?.status === 403) {
+      setShowVerificationWarning(true);
+    } else {
+      setShowVerificationWarning(false);
+    }
+  }, [loginMutation.error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +101,31 @@ export default function LoginPage() {
           <motion.p className="text-sm text-gray-600 mb-6" variants={itemVariants}>
             Sign in to your ProposalIQ account
           </motion.p>
+
+          {/* Email verification warning banner */}
+          <AnimatePresence>
+            {showVerificationWarning && (
+              <motion.div
+                className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6"
+                initial={{ opacity: 0, y: -10, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -10, height: 0 }}
+                transition={{ type: "spring", stiffness: 100, damping: 15 }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-yellow-800">Email not verified</p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      Please check your inbox and click the verification link to activate your account.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <motion.div variants={itemVariants}>

@@ -3,13 +3,22 @@ import type {
   AuthResponse,
   LoginRequest,
   RegisterRequest,
+  RegisterResponse,
+  VerifyEmailResponse,
   User,
   InviteDetails,
 } from "@/types/auth";
 
 export const authService = {
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>("/auth/register", data);
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
+    const response = await apiClient.post<RegisterResponse>("/auth/register", data);
+    return response.data;
+  },
+
+  verifyEmail: async (token: string): Promise<VerifyEmailResponse> => {
+    const response = await apiClient.post<VerifyEmailResponse>(
+      `/auth/verify-email?token=${encodeURIComponent(token)}`
+    );
     return response.data;
   },
 

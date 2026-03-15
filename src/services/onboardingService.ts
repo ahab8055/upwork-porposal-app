@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/axios";
 import { knowledgeBaseService } from "./knowledgeBaseService";
+import { authService } from "./authService";
 
 export interface TeamInvite {
   full_name: string;
@@ -23,6 +24,7 @@ export interface OnboardingCompleteRequest {
 export interface OnboardingCompleteResponse {
   success: boolean;
   message: string;
+  workspace_id?: string;
 }
 
 // Map frontend categories to backend document types
@@ -35,11 +37,35 @@ const categoryToDocumentType: Record<string, string> = {
 
 export const onboardingService = {
   completeOnboarding: async (
-    data: OnboardingCompleteRequest
+    data: OnboardingCompleteRequest,
+    onWorkspaceCreated?: (workspaceId: string) => void
   ): Promise<OnboardingCompleteResponse> => {
-    // Upload knowledge base files first (if any)
-    if (data.knowledge_base_files && data.knowledge_base_files.length > 0) {
-      const uploadPromises = data.knowledge_base_files.map((item) => {
+    // First complete onboarding (this creates the workspace on the backend)
+    const { knowledge_base_files, ...onboardingData } = data;
+    const response = await apiClient.post<OnboardingCompleteResponse>(
+      "/auth/onboarding/complete",
+      onboardingData
+    );
+
+    // If onboarding returned a workspace_id, use the callback to update state
+    if (response.data.workspace_id && onWorkspaceCreated) {
+      onWorkspaceCreated(response.data.workspace_id);
+    } else if (onWorkspaceCreated) {
+      // Fetch updated user data to get the new workspace
+      try {
+        const user = await authService.getCurrentUser();
+        const workspaceId = user.default_workspace_id || user.workspaces?.[0]?.id;
+        if (workspaceId) {
+          onWorkspaceCreated(workspaceId);
+        }
+      } catch (e) {
+        console.error("Error fetching user after onboarding:", e);
+      }
+    }
+
+    // Now upload knowledge base files (workspace should exist now)
+    if (knowledge_base_files && knowledge_base_files.length > 0) {
+      const uploadPromises = knowledge_base_files.map((item) => {
         const documentType = categoryToDocumentType[item.category] || "other";
         return knowledgeBaseService.uploadDocument(
           item.file,
@@ -52,12 +78,6 @@ export const onboardingService = {
       await Promise.all(uploadPromises);
     }
 
-    // Then complete onboarding
-    const { knowledge_base_files, ...onboardingData } = data;
-    const response = await apiClient.post<OnboardingCompleteResponse>(
-      "/auth/onboarding/complete",
-      onboardingData
-    );
     return response.data;
   },
 };

@@ -12,7 +12,7 @@ export const teamService = {
     return response.data;
   },
 
-  removeMember: async (memberId: number): Promise<void> => {
+  removeMember: async (memberId: string): Promise<void> => {
     await apiClient.delete(`/team/${memberId}`);
   },
 };

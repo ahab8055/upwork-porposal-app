@@ -370,15 +370,19 @@ export default function KnowledgeBasePage() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add New Project</DialogTitle>
+                  <DialogTitle className="text-xl font-bold text-slate-900">Add New Project</DialogTitle>
+                  <p className="text-sm text-slate-500 mt-1">Fill in the project details below</p>
                 </DialogHeader>
                 <form
                   onSubmit={handleCreateProject}
-                  className="space-y-4 mt-4"
+                  className="space-y-6 mt-6"
                 >
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                      <Label>Project Name *</Label>
+                  <div className="space-y-5">
+                    {/* Project Name */}
+                    <div>
+                      <Label className="text-slate-700 font-medium mb-2 block">
+                        Project Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         required
                         value={projectForm.name}
@@ -386,11 +390,16 @@ export default function KnowledgeBasePage() {
                           setProjectForm({ ...projectForm, name: e.target.value })
                         }
                         placeholder="e.g., E-commerce Platform"
+                        className="bg-white border-slate-300 focus:border-blue-500 h-10"
                         data-testid="project-name-input"
                       />
                     </div>
-                    <div className="col-span-2">
-                      <Label>Description *</Label>
+
+                    {/* Description */}
+                    <div>
+                      <Label className="text-slate-700 font-medium mb-2 block">
+                        Description <span className="text-red-500">*</span>
+                      </Label>
                       <Textarea
                         required
                         value={projectForm.description}
@@ -401,38 +410,53 @@ export default function KnowledgeBasePage() {
                           })
                         }
                         placeholder="Describe the project..."
-                        rows={3}
+                        rows={4}
+                        className="bg-white border-slate-300 focus:border-blue-500 resize-none"
                         data-testid="project-description-input"
                       />
                     </div>
-                    <div>
-                      <Label>Client Name</Label>
-                      <Input
-                        value={projectForm.client_name}
-                        onChange={(e) =>
-                          setProjectForm({
-                            ...projectForm,
-                            client_name: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Acme Corp"
-                      />
+
+                    {/* Client and Industry */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-slate-700 font-medium mb-2 block">
+                          Client Name
+                        </Label>
+                        <Input
+                          value={projectForm.client_name}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              client_name: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., Acme Corp"
+                          className="bg-white border-slate-300 focus:border-blue-500 h-10"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700 font-medium mb-2 block">
+                          Industry
+                        </Label>
+                        <Input
+                          value={projectForm.industry}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              industry: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., Healthcare, Finance"
+                          className="bg-white border-slate-300 focus:border-blue-500 h-10"
+                        />
+                      </div>
                     </div>
+
+                    {/* Technologies */}
                     <div>
-                      <Label>Industry</Label>
-                      <Input
-                        value={projectForm.industry}
-                        onChange={(e) =>
-                          setProjectForm({
-                            ...projectForm,
-                            industry: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Healthcare, Finance"
-                      />
-                    </div>
-                    <div className="col-span-2">
-                      <Label>Technologies (comma-separated)</Label>
+                      <Label className="text-slate-700 font-medium mb-2 block">
+                        Technologies <span className="text-slate-500 text-xs font-normal">(comma-separated)</span>
+                      </Label>
                       <Input
                         value={projectForm.technologies}
                         onChange={(e) =>
@@ -442,79 +466,103 @@ export default function KnowledgeBasePage() {
                           })
                         }
                         placeholder="e.g., React, Node.js, PostgreSQL"
+                        className="bg-white border-slate-300 focus:border-blue-500 h-10"
                         data-testid="project-technologies-input"
                       />
                     </div>
-                    <div>
-                      <Label>Team Size</Label>
-                      <Input
-                        type="number"
-                        value={projectForm.team_size}
-                        onChange={(e) =>
-                          setProjectForm({
-                            ...projectForm,
-                            team_size: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 5"
-                      />
+
+                    {/* Team Size and Duration */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-slate-700 font-medium mb-2 block">
+                          Team Size
+                        </Label>
+                        <Input
+                          type="number"
+                          value={projectForm.team_size}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              team_size: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., 5"
+                          className="bg-white border-slate-300 focus:border-blue-500 h-10"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700 font-medium mb-2 block">
+                          Duration <span className="text-slate-500 text-xs font-normal">(months)</span>
+                        </Label>
+                        <Input
+                          type="number"
+                          step="0.5"
+                          value={projectForm.duration_months}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              duration_months: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., 3"
+                          className="bg-white border-slate-300 focus:border-blue-500 h-10"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label>Duration (months)</Label>
-                      <Input
-                        type="number"
-                        step="0.5"
-                        value={projectForm.duration_months}
-                        onChange={(e) =>
-                          setProjectForm({
-                            ...projectForm,
-                            duration_months: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 3"
-                      />
-                    </div>
-                    <div>
-                      <Label>Budget Range</Label>
-                      <Input
-                        value={projectForm.budget_range}
-                        onChange={(e) =>
-                          setProjectForm({
-                            ...projectForm,
-                            budget_range: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., $20,000 - $30,000"
-                      />
-                    </div>
-                    <div>
-                      <Label>Outcome/Result</Label>
-                      <Input
-                        value={projectForm.outcome}
-                        onChange={(e) =>
-                          setProjectForm({
-                            ...projectForm,
-                            outcome: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 50% increase in sales"
-                      />
+
+                    {/* Budget Range and Outcome */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-slate-700 font-medium mb-2 block">
+                          Budget Range
+                        </Label>
+                        <Input
+                          value={projectForm.budget_range}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              budget_range: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., $20,000 - $30,000"
+                          className="bg-white border-slate-300 focus:border-blue-500 h-10"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-slate-700 font-medium mb-2 block">
+                          Outcome/Result
+                        </Label>
+                        <Input
+                          value={projectForm.outcome}
+                          onChange={(e) =>
+                            setProjectForm({
+                              ...projectForm,
+                              outcome: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., 50% increase in sales"
+                          className="bg-white border-slate-300 focus:border-blue-500 h-10"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-end gap-3 pt-4">
+
+                  <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setProjectModalOpen(false)}
+                      className="px-6"
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                      disabled={createProjectMutation.isPending}
                       data-testid="save-project-btn"
                     >
-                      Save Project
+                      {createProjectMutation.isPending ? "Saving..." : "Save Project"}
                     </Button>
                   </div>
                 </form>

@@ -8,19 +8,33 @@ import type { LoginRequest, RegisterRequest } from "@/types/auth";
 import { AxiosError } from "axios";
 
 export function useRegister() {
+  return useMutation({
+    mutationFn: (data: RegisterRequest) => authService.register(data),
+    onError: (error: AxiosError<{ detail?: string }>) => {
+      const message = error.response?.data?.detail || "Registration failed";
+      toast.error(message);
+    },
+  });
+}
+
+export function useVerifyEmail() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
 
   return useMutation({
-    mutationFn: (data: RegisterRequest) => authService.register(data),
+    mutationFn: (token: string) => authService.verifyEmail(token),
     onSuccess: (data) => {
       login(data.user, data.access_token);
-      toast.success("Account created successfully!");
-      router.push("/onboarding");
+      toast.success("Email verified successfully!");
+
+      // Check if user has workspace and completed onboarding
+      const hasWorkspace = data.user.default_workspace_id || (data.user.workspaces && data.user.workspaces.length > 0);
+      const canAccessDashboard = data.user.onboarding_completed && hasWorkspace;
+
+      router.push(canAccessDashboard ? "/dashboard" : "/onboarding");
     },
     onError: (error: AxiosError<{ detail?: string }>) => {
-      const message = error.response?.data?.detail || "Registration failed";
-      toast.error(message);
+      toast.error(error.response?.data?.detail || "Verification failed");
     },
   });
 }
@@ -34,14 +48,18 @@ export function useLogin() {
     onSuccess: (data) => {
       login(data.user, data.access_token);
       toast.success("Welcome back!");
-      // Redirect based on onboarding status
-      if (data.user.onboarding_completed) {
-        router.push("/dashboard");
-      } else {
-        router.push("/onboarding");
-      }
+
+      // Check if user has workspace and completed onboarding
+      const hasWorkspace = data.user.default_workspace_id || (data.user.workspaces && data.user.workspaces.length > 0);
+      const canAccessDashboard = data.user.onboarding_completed && hasWorkspace;
+
+      router.push(canAccessDashboard ? "/dashboard" : "/onboarding");
     },
     onError: (error: AxiosError<{ detail?: string }>) => {
+      // Don't show toast for 403 - let the component handle showing the verification banner
+      if (error.response?.status === 403) {
+        return;
+      }
       const message = error.response?.data?.detail || "Login failed";
       toast.error(message);
     },

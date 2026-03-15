@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/axios";
 import type {
   Document,
+  DocumentDownloadResponse,
   Project,
   Resume,
   CreateProjectRequest,
@@ -28,8 +29,28 @@ export const knowledgeBaseService = {
     return response.data;
   },
 
-  deleteDocument: async (id: number): Promise<void> => {
+  deleteDocument: async (id: string): Promise<void> => {
     await apiClient.delete(`/documents/${id}`);
+  },
+
+  getDocumentDownloadUrl: async (id: string): Promise<DocumentDownloadResponse> => {
+    const response = await apiClient.get<DocumentDownloadResponse>(`/documents/${id}/download`);
+    return response.data;
+  },
+
+  downloadDocument: async (id: string, filename?: string): Promise<void> => {
+    const { download_url } = await knowledgeBaseService.getDocumentDownloadUrl(id);
+
+    // Create a temporary link to download the file
+    const link = document.createElement("a");
+    link.href = download_url;
+    link.target = "_blank";
+    if (filename) {
+      link.download = filename;
+    }
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   },
 
   // Projects

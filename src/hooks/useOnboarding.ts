@@ -12,10 +12,21 @@ export function useCompleteOnboarding() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
+  const switchWorkspace = useAuthStore((state) => state.switchWorkspace);
+  const setWorkspaces = useAuthStore((state) => state.setWorkspaces);
+  const workspaces = useAuthStore((state) => state.workspaces);
 
   return useMutation({
     mutationFn: (data: OnboardingCompleteRequest) =>
-      onboardingService.completeOnboarding(data),
+      onboardingService.completeOnboarding(data, (workspaceId: string) => {
+        // Set the workspace ID in localStorage immediately so file uploads work
+        localStorage.setItem("currentWorkspaceId", workspaceId);
+
+        // Also update the store state
+        const newWorkspace = { id: workspaceId, name: data.company_name, role: "owner" as const };
+        setWorkspaces([...workspaces, newWorkspace]);
+        switchWorkspace(workspaceId);
+      }),
     onSuccess: () => {
       // Update user state with onboarding_completed = true
       if (user) {

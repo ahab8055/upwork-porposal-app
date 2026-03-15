@@ -7,24 +7,26 @@ import { motion, AnimatePresence, useReducedMotion, Variants } from "framer-moti
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Mail, Lock, User, Users } from "lucide-react";
-import { useRegister, useInviteDetails, useAcceptInvite } from "@/hooks/useAuth";
+import { useRegister, useInviteDetails } from "@/hooks/useAuth";
 import { signupSchema } from "@/lib/validations/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AnimatedFormCard } from "@/components/auth/AnimatedFormCard";
 import { AnimatedInput } from "@/components/auth/AnimatedInput";
 import { AnimatedButton } from "@/components/auth/AnimatedButton";
 import { GoogleButton, GitHubButton } from "@/components/auth/SocialButtons";
+import { EmailSentConfirmation } from "@/components/auth/EmailSentConfirmation";
 
 function SignupForm() {
   const searchParams = useSearchParams();
   const registerMutation = useRegister();
-  const acceptInviteMutation = useAcceptInvite();
   const prefersReducedMotion = useReducedMotion();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   // Check for invite code in URL
   useEffect(() => {
@@ -59,19 +61,29 @@ function SignupForm() {
       // Register the user using Axios via TanStack Query
       await registerMutation.mutateAsync({ name, email, password });
 
-      // If there's an invite code, accept it
-      if (inviteCode && inviteDetails) {
-        try {
-          await acceptInviteMutation.mutateAsync(inviteCode);
-          toast.success(`Welcome to ${inviteDetails.workspace_name}!`);
-        } catch (e) {
-          console.error("Error accepting invite:", e);
-        }
+      // Store invite code in sessionStorage if present (for use after email verification)
+      if (inviteCode) {
+        sessionStorage.setItem("pendingInviteCode", inviteCode);
       }
+
+      // Show email confirmation screen
+      setRegisteredEmail(email);
+      setRegistrationComplete(true);
+      toast.success("Account created! Please check your email to verify.");
     } catch {
       // Error is handled by the mutation
     }
   };
+
+  const handleTryAgain = () => {
+    setRegistrationComplete(false);
+    setRegisteredEmail("");
+  };
+
+  // Show email confirmation screen after successful registration
+  if (registrationComplete) {
+    return <EmailSentConfirmation email={registeredEmail} onTryAgain={handleTryAgain} />;
+  }
 
   // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
   const handleGoogleSignup = () => {

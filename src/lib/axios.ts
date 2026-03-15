@@ -11,13 +11,20 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and workspace ID
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add workspace ID header
+    const currentWorkspaceId = localStorage.getItem("currentWorkspaceId");
+    if (currentWorkspaceId) {
+      config.headers["X-Workspace-ID"] = currentWorkspaceId;
+    }
+
     return config;
   },
   (error) => {
@@ -32,6 +39,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Clear token on unauthorized
       localStorage.removeItem("token");
+      localStorage.removeItem("currentWorkspaceId");
       // You can dispatch a logout action here if needed
     }
     return Promise.reject(error);

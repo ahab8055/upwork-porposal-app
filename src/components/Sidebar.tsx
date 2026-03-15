@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/hooks/useAuth";
+import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -56,7 +57,7 @@ export function Sidebar({ sidebarOpen = true, setSidebarOpen }: SidebarProps) {
     >
       <div className="flex flex-col h-full">
         {/* Logo */}
-        <div className="p-6">
+        <div className="p-6 pb-3">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
@@ -65,6 +66,11 @@ export function Sidebar({ sidebarOpen = true, setSidebarOpen }: SidebarProps) {
               ProposalIQ
             </span>
           </Link>
+        </div>
+
+        {/* Workspace Switcher */}
+        <div className="px-3 pb-3">
+          <WorkspaceSwitcher />
         </div>
 
         {/* Main Navigation */}
