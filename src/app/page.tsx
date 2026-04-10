@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,9 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const cookieStore = await cookies();
+  const isAuthenticated = !!cookieStore.get("auth-token")?.value;
   const features = [
     {
       icon: <FileText className="w-6 h-6" />,
@@ -134,20 +137,36 @@ export default function LandingPage() {
               >
                 Pricing
               </a>
-              <Link
-                href="/login"
-                className="text-slate-600 hover:text-slate-900 transition-colors"
-              >
-                Login
-              </Link>
-              <Link href="/signup">
-                <Button
-                  className="bg-blue-600 hover:bg-blue-700"
-                  data-testid="nav-signup-btn"
+              {isAuthenticated ? (
+                <Link
+                  href="/dashboard"
+                  className="text-slate-600 hover:text-slate-900 transition-colors"
                 >
-                  Get Started
-                </Button>
-              </Link>
+                  <Button
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="nav-signup-btn"
+                    >
+                      Dashboard
+                    </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-slate-600 hover:text-slate-900 transition-colors"
+                  >
+                    Login
+                  </Link>
+                  <Link href="/signup">
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="nav-signup-btn"
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -323,7 +342,9 @@ export default function LandingPage() {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-slate-900 mb-4">
               Simple, transparent pricing
             </h2>
-            <p className="text-lg text-slate-600">Start free, scale as you grow</p>
+            <p className="text-lg text-slate-600">
+              Start free, scale as you grow
+            </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {pricingPlans.map((plan, index) => (

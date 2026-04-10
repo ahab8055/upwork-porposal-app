@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
+import { useCurrentUser } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/Sidebar";
 import { Menu, Zap } from "lucide-react";
 
@@ -13,21 +14,36 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
+  const setUser = useAuthStore((state) => state.setUser);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Redirect to onboarding if user hasn't completed it or has no workspace
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const hasWorkspace = currentWorkspaceId || user.default_workspace_id || (user.workspaces && user.workspaces.length > 0);
+  // Fetch fresh user data from /api/v1/auth/me to check onboarding status
+  const { data: meData, isSuccess, isError } = useCurrentUser();
 
-      if (user.onboarding_completed === false || !hasWorkspace) {
+  useEffect(() => {
+    if (isSuccess && meData) {
+      // Update store with fresh user data
+      setUser(meData);
+
+      const hasWorkspace =
+        currentWorkspaceId ||
+        meData.default_workspace_id ||
+        (meData.workspaces && meData.workspaces.length > 0);
+
+      if (!meData.onboarding_completed || !hasWorkspace) {
         router.push("/onboarding");
       }
     }
-  }, [isAuthenticated, user, currentWorkspaceId, router]);
+  }, [isSuccess, meData, currentWorkspaceId, setUser, router]);
+
+  // If not authenticated and /auth/me fails, redirect to login
+  useEffect(() => {
+    if (isError && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isError, isAuthenticated, router]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
