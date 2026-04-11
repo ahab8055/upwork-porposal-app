@@ -52,7 +52,11 @@ interface SkillsStepProps {
 export function SkillsStep({ skills, onChange }: SkillsStepProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLUListElement>(null);
+
+  const LISTBOX_ID = "skill-search-listbox";
 
   const filtered =
     query.trim().length > 0
@@ -79,16 +83,53 @@ export function SkillsStep({ skills, onChange }: SkillsStepProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (filtered.length > 0) {
-        addSkill(filtered[0].canonical_name);
-      } else if (query.trim()) {
-        addSkill(query.trim());
-      }
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        if (filtered.length > 0) {
+          setActiveIndex((i) => (i + 1) % filtered.length);
+          setOpen(true);
+        }
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (filtered.length > 0) {
+          setActiveIndex((i) => (i <= 0 ? filtered.length - 1 : i - 1));
+          setOpen(true);
+        }
+        break;
+      case "Home":
+        e.preventDefault();
+        if (filtered.length > 0) setActiveIndex(0);
+        break;
+      case "End":
+        e.preventDefault();
+        if (filtered.length > 0) setActiveIndex(filtered.length - 1);
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (open && filtered.length > 0) {
+          const target = activeIndex >= 0 ? filtered[activeIndex] : filtered[0];
+          addSkill(target.canonical_name);
+        } else if (query.trim()) {
+          addSkill(query.trim());
+        }
+        setActiveIndex(-1);
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        setActiveIndex(-1);
+        break;
     }
-    if (e.key === "Escape") setOpen(false);
   };
+
+  // Scroll active option into view when keyboard navigating
+  useEffect(() => {
+    if (activeIndex < 0 || !listboxRef.current) return;
+    const option = listboxRef.current.children[activeIndex] as HTMLElement | undefined;
+    option?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -131,13 +172,29 @@ export function SkillsStep({ skills, onChange }: SkillsStepProps) {
                 id="skillSearch"
                 type="text"
                 autoComplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={open}
+                aria-controls={LISTBOX_ID}
+                aria-haspopup="listbox"
+                aria-activedescendant={
+                  activeIndex >= 0 && filtered[activeIndex]
+                    ? `option-${filtered[activeIndex].id}`
+                    : undefined
+                }
                 placeholder="Search skills (e.g. React, Python, Docker)…"
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
                   setOpen(e.target.value.trim().length > 0);
+                  setActiveIndex(-1);
                 }}
-                onFocus={() => query.trim().length > 0 && setOpen(true)}
+                onFocus={() => {
+                  if (query.trim().length > 0) {
+                    setOpen(true);
+                    setActiveIndex(-1);
+                  }
+                }}
                 onKeyDown={handleKeyDown}
                 className="w-full h-11 rounded-md border border-input bg-background pl-10 pr-4 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-muted-foreground"
               />
@@ -145,17 +202,31 @@ export function SkillsStep({ skills, onChange }: SkillsStepProps) {
 
             {/* Dropdown results */}
             {open && filtered.length > 0 && (
-              <ul className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md max-h-56 overflow-y-auto">
-                {filtered.map((skill) => (
-                  <li key={skill.id}>
+              <ul
+                id={LISTBOX_ID}
+                ref={listboxRef}
+                role="listbox"
+                aria-label="Skill suggestions"
+                className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md max-h-56 overflow-y-auto"
+              >
+                {filtered.map((skill, index) => (
+                  <li
+                    key={skill.id}
+                    id={`option-${skill.id}`}
+                    role="option"
+                    aria-selected={index === activeIndex}
+                  >
                     <button
                       type="button"
                       onMouseDown={(e) => {
                         e.preventDefault();
                         addSkill(skill.canonical_name);
+                        setActiveIndex(-1);
                       }}
                       disabled={skills.includes(skill.canonical_name)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed text-left"
+                      className={`w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground disabled:opacity-40 disabled:cursor-not-allowed text-left${
+                        index === activeIndex ? " bg-accent text-accent-foreground" : ""
+                      }`}
                     >
                       <span>{skill.canonical_name}</span>
                       {skill.industry_demand === "very_high" && (
