@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch fresh user data from /api/v1/auth/me to check onboarding status
-  const { data: meData, isSuccess, isError } = useCurrentUser();
+  const { data: meData, isSuccess, isError, error } = useCurrentUser();
 
   useEffect(() => {
     if (isSuccess && meData) {
@@ -28,9 +28,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       setUser(meData);
 
       const hasWorkspace =
-        currentWorkspaceId ||
-        meData.default_workspace_id ||
-        (meData.workspaces && meData.workspaces.length > 0);
+        Boolean(meData.default_workspace_id) ||
+        Boolean(meData.workspaces?.length);
 
       if (!meData.onboarding_completed || !hasWorkspace) {
         router.push("/onboarding");
@@ -38,13 +37,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [isSuccess, meData, currentWorkspaceId, setUser, router]);
 
-  // If not authenticated and /auth/me fails, redirect to login
+  // If not authenticated and /auth/me fails with 401, redirect to login
   useEffect(() => {
-    if (isError) {
+    if (isError && (error as { response?: { status?: number } })?.response?.status === 401) {
       useAuthStore.getState().logout();
       router.push("/login");
     }
-  }, [isError, router]);
+  }, [isError, error, router]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
