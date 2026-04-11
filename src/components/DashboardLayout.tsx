@@ -14,8 +14,6 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const setUser = useAuthStore((state) => state.setUser);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -35,7 +33,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         router.push("/onboarding");
       }
     }
-  }, [isSuccess, meData, currentWorkspaceId, setUser, router]);
+  }, [isSuccess, meData, setUser, router]);
 
   // If not authenticated and /auth/me fails with 401, redirect to login
   useEffect(() => {

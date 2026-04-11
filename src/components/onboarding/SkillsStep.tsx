@@ -221,7 +221,7 @@ export function SkillsStep({ skills, onChange }: SkillsStepProps) {
                   }`}
                 >
                   {selected ? (
-                    <X className="h-3 w-3" />
+                    <X aria-hidden="true" className="h-3 w-3" />
                   ) : (
                     <span className="text-xs leading-none">+</span>
                   )}
