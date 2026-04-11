@@ -11,10 +11,11 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
+import { AUTH_TOKEN_KEY } from "@/lib/cookies";
 
 export default async function LandingPage() {
   const cookieStore = await cookies();
-  const isAuthenticated = !!cookieStore.get("auth-token")?.value;
+  const isAuthenticated = !!cookieStore.get(AUTH_TOKEN_KEY)?.value;
   const features = [
     {
       icon: <FileText className="w-6 h-6" />,

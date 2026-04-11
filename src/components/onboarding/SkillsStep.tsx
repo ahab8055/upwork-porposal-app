@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import skillsData from '../../../public/skills.json';
+import skillsData from '@/data/skills.json';
 
 // Flatten all skills from the JSON into a single list
 type SkillEntry = { id: string; canonical_name: string; industry_demand?: string };

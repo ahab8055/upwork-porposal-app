@@ -40,10 +40,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // If not authenticated and /auth/me fails, redirect to login
   useEffect(() => {
-    if (isError && !isAuthenticated) {
+    if (isError) {
+      useAuthStore.getState().logout();
       router.push("/login");
     }
-  }, [isError, isAuthenticated, router]);
+  }, [isError, router]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">

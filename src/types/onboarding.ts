@@ -24,6 +24,11 @@ export interface KnowledgeBaseFile {
   category: string;
 }
 
+export interface Industry {
+  id: string;
+  label: string;
+}
+
 export const COMPANY_SIZES = [
   '1-10 employees',
   '11-50 employees',
@@ -33,7 +38,7 @@ export const COMPANY_SIZES = [
   '1000+ employees',
 ];
 
-export const INDUSTRIES = [
+export const INDUSTRIES: Industry[] = [
   {
     "id": "accounting",
     "label": "Accounting"
