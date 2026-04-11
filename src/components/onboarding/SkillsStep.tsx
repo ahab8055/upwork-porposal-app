@@ -110,9 +110,11 @@ export function SkillsStep({ skills, onChange }: SkillsStepProps) {
         e.preventDefault();
         if (open && filtered.length > 0) {
           const target = activeIndex >= 0 ? filtered[activeIndex] : filtered[0];
-          addSkill(target.canonical_name);
-        } else if (query.trim()) {
-          addSkill(query.trim());
+          if (!skills.includes(target.canonical_name)) {
+            addSkill(target.canonical_name);
+          }
+        } else {
+          setOpen(false);
         }
         setActiveIndex(-1);
         break;
