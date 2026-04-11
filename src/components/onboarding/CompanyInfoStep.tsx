@@ -6,7 +6,7 @@ import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CompanyInfo, COMPANY_SIZES } from '@/types/onboarding';
+import { CompanyInfo, COMPANY_SIZES, INDUSTRIES } from '@/types/onboarding';
 
 interface CompanyInfoStepProps {
   data: CompanyInfo;
@@ -103,13 +103,21 @@ export function CompanyInfoStep({ data, onChange }: CompanyInfoStepProps) {
         {/* Industry */}
         <div className="space-y-2">
           <Label htmlFor="industry">Industry (Optional)</Label>
-          <Input
-            id="industry"
-            placeholder="e.g., Technology, Marketing, Consulting"
+          <Select
             value={data.industry || ''}
-            onChange={(e) => onChange({ ...data, industry: e.target.value })}
-            className="h-11"
-          />
+            onValueChange={(value) => onChange({ ...data, industry: value })}
+          >
+            <SelectTrigger className="h-11">
+              <SelectValue placeholder="Select industry" />
+            </SelectTrigger>
+            <SelectContent>
+              {INDUSTRIES.map(({ id, label }) => (
+                <SelectItem key={id} value={id}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Company Size */}
