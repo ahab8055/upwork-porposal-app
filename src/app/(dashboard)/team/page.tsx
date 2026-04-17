@@ -51,10 +51,8 @@ export default function TeamPage() {
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    inviteMemberMutation.mutate(
-      {
-        email: inviteEmail,
-        role: inviteRole,
+    inviteMemberMutation.mutate({
+        members: [{ name: '', email: inviteEmail, role: inviteRole }]
       },
       {
         onSuccess: (data) => {

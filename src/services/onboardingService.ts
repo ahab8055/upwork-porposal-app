@@ -45,7 +45,6 @@ export const onboardingService = {
   ): Promise<OnboardingCompleteResponse> => {
     // First complete onboarding (this creates the workspace on the backend)
     const { knowledge_base_files, team_invites, ...onboardingData } = data;
-    console.log("Completing onboarding with data:", onboardingData, team_invites, knowledge_base_files);
     const onboardingFormData = new FormData();
     onboardingFormData.append("company_name", onboardingData.company_name);
     if (onboardingData.industry) {
@@ -85,7 +84,11 @@ export const onboardingService = {
     }
 
     if (team_invites && team_invites.length > 0) {
-      await teamService.inviteMember({ members: team_invites });
+      try {
+        await teamService.inviteMember({ members: team_invites });
+      } catch (e) {
+        console.error("Error sending team invites:", e);
+      }
     }
 
     // Now upload knowledge base files (workspace should exist now)
