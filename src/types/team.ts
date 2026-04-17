@@ -14,9 +14,14 @@ export interface TeamMember {
   updated_at?: string;
 }
 
-export interface InviteRequest {
+export interface InviteEntry {
+  name: string;
   email: string;
   role?: WorkspaceRole;
+}
+
+export interface InviteRequest {
+  members: InviteEntry[];
 }
 
 export interface InviteResponse {

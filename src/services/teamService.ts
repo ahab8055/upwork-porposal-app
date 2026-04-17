@@ -8,7 +8,7 @@ export const teamService = {
   },
 
   inviteMember: async (data: InviteRequest): Promise<InviteResponse> => {
-    const response = await apiClient.post<InviteResponse>("/team/invite", data);
+    const response = await apiClient.post<InviteResponse>("/workspace/invite", data);
     return response.data;
   },
 

@@ -1,10 +1,12 @@
 import { apiClient } from "@/lib/axios";
 import { knowledgeBaseService } from "./knowledgeBaseService";
 import { authService } from "./authService";
+import { teamService } from "./teamService";
 
 export interface TeamInvite {
-  full_name: string;
+  name: string;
   email: string;
+  role?: "owner" | "admin" | "member" | "viewer";
 }
 
 export interface KnowledgeBaseFile {
@@ -17,6 +19,7 @@ export interface OnboardingCompleteRequest {
   industry?: string;
   company_size?: string;
   skills: string[];
+  logo?: File | null;
   team_invites: TeamInvite[];
   knowledge_base_files?: KnowledgeBaseFile[];
 }
@@ -41,10 +44,27 @@ export const onboardingService = {
     onWorkspaceCreated?: (workspaceId: string) => void
   ): Promise<OnboardingCompleteResponse> => {
     // First complete onboarding (this creates the workspace on the backend)
-    const { knowledge_base_files, ...onboardingData } = data;
+    const { knowledge_base_files, team_invites, ...onboardingData } = data;
+    const onboardingFormData = new FormData();
+    onboardingFormData.append("company_name", onboardingData.company_name);
+    if (onboardingData.industry) {
+      onboardingFormData.append("industry", onboardingData.industry);
+    }
+    if (onboardingData.company_size) {
+      onboardingFormData.append("company_size", onboardingData.company_size);
+    }
+    if (onboardingData.logo) {
+      onboardingFormData.append("logo", onboardingData.logo);
+    }
+    onboardingData.skills.forEach((skill, index) => onboardingFormData.append(`skills[${index}]`, skill));
     const response = await apiClient.post<OnboardingCompleteResponse>(
       "/auth/onboarding/complete",
-      onboardingData
+      onboardingFormData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
     // If onboarding returned a workspace_id, use the callback to update state
@@ -60,6 +80,14 @@ export const onboardingService = {
         }
       } catch (e) {
         console.error("Error fetching user after onboarding:", e);
+      }
+    }
+
+    if (team_invites && team_invites.length > 0) {
+      try {
+        await teamService.inviteMember({ members: team_invites });
+      } catch (e) {
+        console.error("Error sending team invites:", e);
       }
     }
 
