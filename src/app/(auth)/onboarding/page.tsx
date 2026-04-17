@@ -72,18 +72,15 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSkip = () => {
-    handleNext();
-  };
-
   const handleComplete = () => {
     completeOnboardingMutation.mutate({
       company_name: onboardingData.companyInfo.name,
       industry: onboardingData.companyInfo.industry || undefined,
       company_size: onboardingData.companyInfo.companySize || undefined,
       skills: onboardingData.skills,
+      logo: onboardingData.companyInfo.logo || undefined,
       team_invites: onboardingData.teamMembers.map((member) => ({
-        full_name: member.fullName,
+        name: member.fullName,
         email: member.email,
       })),
       knowledge_base_files: onboardingData.knowledgeBaseFiles,
@@ -181,15 +178,6 @@ export default function OnboardingPage() {
               </Button>
 
               <div className="flex gap-3">
-                {currentStepIndex > 0 && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleSkip}
-                    className="text-gray-600"
-                  >
-                    Skip
-                  </Button>
-                )}
                 <Button
                   onClick={handleNext}
                   disabled={!canProceed() || completeOnboardingMutation.isPending}

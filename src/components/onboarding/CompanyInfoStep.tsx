@@ -110,7 +110,7 @@ export function CompanyInfoStep({ data, onChange }: CompanyInfoStepProps) {
             <SelectTrigger className="h-11">
               <SelectValue placeholder="Select industry" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-60 overflow-y-auto">
               {INDUSTRIES.map(({ id, label }) => (
                 <SelectItem key={id} value={id}>
                   {label}
