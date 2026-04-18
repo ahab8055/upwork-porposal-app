@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/Sidebar";
-import { Menu, Zap } from "lucide-react";
+import { Menu, Zap, Loader2 } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch fresh user data from /api/v1/auth/me to check onboarding status
-  const { data: meData, isSuccess, isError, error } = useCurrentUser();
+  const { data: meData, isSuccess, isError, isPending, error } = useCurrentUser();
 
   useEffect(() => {
     if (isSuccess && meData) {
@@ -42,6 +42,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       router.push("/login");
     }
   }, [isError, error, router]);
+
+  // Block rendering until the /me check resolves to prevent flashing dashboard
+  // before onboarding redirect, or showing content to unauthenticated users.
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
