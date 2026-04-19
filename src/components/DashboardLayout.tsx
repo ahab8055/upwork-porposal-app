@@ -28,20 +28,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const statusCode = (error as { response?: { status?: number } })?.response
     ?.status;
 
+  const hasWorkspace = Boolean(meData?.default_workspace_id) || Boolean(meData?.workspaces?.length);
+  const needsOnboarding = Boolean(meData) && (!meData?.onboarding_completed || !hasWorkspace);;
+
   useEffect(() => {
     if (isSuccess && meData) {
       // Update store with fresh user data
       setUser(meData);
 
-      const hasWorkspace =
-        Boolean(meData.default_workspace_id) ||
-        Boolean(meData.workspaces?.length);
-
-      if (!meData.onboarding_completed || !hasWorkspace) {
+      if (needsOnboarding) {
         router.push("/onboarding");
       }
     }
-  }, [isSuccess, meData, setUser, router]);
+  }, [isSuccess, meData, setUser, router, needsOnboarding]);
 
   // If not authenticated and /auth/me fails with 401, redirect to login
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Block rendering until the /me check resolves to prevent flashing dashboard
   // before onboarding redirect, or showing content to unauthenticated users.
-  if (isPending || (isError && statusCode !== 401)) {
+  if (isPending || (isError && statusCode === 401) || needsOnboarding) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
