@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/axios";
-import type { TeamMember, InviteRequest, InviteResponse } from "@/types/team";
+import type { TeamMember, InviteRequest, InviteResponse, AcceptInviteRequest } from "@/types/team";
 
 export const teamService = {
   getTeamMembers: async (): Promise<TeamMember[]> => {
@@ -8,11 +8,15 @@ export const teamService = {
   },
 
   inviteMember: async (data: InviteRequest): Promise<InviteResponse> => {
-    const response = await apiClient.post<InviteResponse>("/workspace/invite", data);
+    const response = await apiClient.post<InviteResponse>("/team/invite", data);
     return response.data;
   },
 
   removeMember: async (memberId: string): Promise<void> => {
     await apiClient.delete(`/team/${memberId}`);
+  },
+
+  acceptInvite: async (data: AcceptInviteRequest): Promise<void> => {
+    await apiClient.post("/team/invite/accept", data);
   },
 };

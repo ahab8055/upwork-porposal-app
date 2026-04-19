@@ -24,6 +24,23 @@ export interface InviteRequest {
   members: InviteEntry[];
 }
 
+export interface AcceptInviteRequest {
+  token: string;
+  name?: string;
+  password?: string;
+}
+
+export interface InviteTokenPayload {
+  invite_id: string;
+  email: string;
+  workspace_name: string;
+  name: string;
+  user_existed: boolean;
+  type: string;
+  exp: number;
+  iat: number;
+}
+
 export interface InviteResponse {
   member_id: string;
   invite_code: string;

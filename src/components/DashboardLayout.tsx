@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { Sidebar } from "@/components/Sidebar";
-import { Menu, Zap } from "lucide-react";
+import { Menu, Zap, Loader2 } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,30 +18,60 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch fresh user data from /api/v1/auth/me to check onboarding status
-  const { data: meData, isSuccess, isError, error } = useCurrentUser();
+  const {
+    data: meData,
+    isSuccess,
+    isError,
+    isPending,
+    error,
+  } = useCurrentUser();
+  const statusCode = (error as { response?: { status?: number } })?.response
+    ?.status;
+
+  const hasWorkspace = Boolean(meData?.default_workspace_id) || Boolean(meData?.workspaces?.length);
+  const needsOnboarding = Boolean(meData) && (!meData?.onboarding_completed || !hasWorkspace);;
 
   useEffect(() => {
     if (isSuccess && meData) {
       // Update store with fresh user data
       setUser(meData);
 
-      const hasWorkspace =
-        Boolean(meData.default_workspace_id) ||
-        Boolean(meData.workspaces?.length);
-
-      if (!meData.onboarding_completed || !hasWorkspace) {
+      if (needsOnboarding) {
         router.push("/onboarding");
       }
     }
-  }, [isSuccess, meData, setUser, router]);
+  }, [isSuccess, meData, setUser, router, needsOnboarding]);
 
   // If not authenticated and /auth/me fails with 401, redirect to login
   useEffect(() => {
-    if (isError && (error as { response?: { status?: number } })?.response?.status === 401) {
+    if (
+      isError &&
+      (error as { response?: { status?: number } })?.response?.status === 401
+    ) {
       useAuthStore.getState().logout();
       router.push("/login");
     }
   }, [isError, error, router]);
+
+  // Block rendering until the /me check resolves to prevent flashing dashboard
+  // before onboarding redirect, or showing content to unauthenticated users.
+  if (isPending || (isError && statusCode === 401) || needsOnboarding) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-sm text-slate-600">
+          Unable to load your account. Please refresh.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">

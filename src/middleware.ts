@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 const AUTH_TOKEN_KEY = "auth-token";
 
 // Public routes that don't require authentication
-const publicRoutes = ["/", "/login", "/signup", "/verify-email"];
+const publicRoutes = ["/", "/login", "/signup", "/verify-email", "/accept-invite"];
 
 // Auth routes that should redirect to dashboard if already authenticated
 const authRoutes = ["/login", "/signup"];
