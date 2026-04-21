@@ -38,7 +38,11 @@ export function GoogleLoginButton({ text = 'signin_with' }: GoogleLoginButtonPro
       container.querySelector<HTMLElement>('div[role="button"]') ??
       container.querySelector<HTMLElement>('button') ??
       (container.firstElementChild as HTMLElement | null);
-    btn?.click();
+    if (!btn) {
+      toast.error('Google sign-in is temporarily unavailable. Please refresh and try again.');
+      return;
+    }
+    btn.click();
   };
 
   return (
