@@ -109,3 +109,25 @@ export function useAcceptInvite() {
     mutationFn: (code: string) => authService.acceptInvite(code),
   });
 }
+
+export function useGoogleAuth() {
+  const router = useRouter();
+  const login = useAuthStore((state) => state.login);
+
+  return useMutation({
+    mutationFn: (data: { id_token: string }) => authService.googleLogin(data),
+    onSuccess: (data) => {
+      login(data.user, data.access_token);
+      toast.success("Signed in with Google!");
+
+      const hasWorkspace = data.user.default_workspace_id || (data.user.workspaces && data.user.workspaces.length > 0);
+      const canAccessDashboard = data.user.onboarding_completed && hasWorkspace;
+
+      router.push(canAccessDashboard ? "/dashboard" : "/onboarding");
+    },
+    onError: (error: AxiosError<{ detail?: string }>) => {
+      const message = error.response?.data?.detail || "Google login failed";
+      toast.error(message);
+    },
+  });
+}

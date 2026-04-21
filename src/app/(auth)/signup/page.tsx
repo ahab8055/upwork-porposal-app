@@ -13,7 +13,8 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AnimatedFormCard } from "@/components/auth/AnimatedFormCard";
 import { AnimatedInput } from "@/components/auth/AnimatedInput";
 import { AnimatedButton } from "@/components/auth/AnimatedButton";
-import { GoogleButton, GitHubButton } from "@/components/auth/SocialButtons";
+import { GitHubButton } from "@/components/auth/SocialButtons";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { EmailSentConfirmation } from "@/components/auth/EmailSentConfirmation";
 
 function SignupForm() {
@@ -80,10 +81,8 @@ function SignupForm() {
     return <EmailSentConfirmation email={registeredEmail} onTryAgain={handleTryAgain} />;
   }
 
-  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-  const handleGoogleSignup = () => {
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  const handleGitHubSignup = () => {
+    toast.info('GitHub signup coming soon.');
   };
 
   const loading = registerMutation.isPending;
@@ -269,8 +268,8 @@ function SignupForm() {
               </motion.div>
 
               <motion.div className="grid grid-cols-2 gap-3" variants={itemVariants}>
-                <GoogleButton onClick={handleGoogleSignup} />
-                <GitHubButton onClick={handleGoogleSignup} />
+                <GoogleLoginButton text="signup_with" />
+                <GitHubButton onClick={handleGitHubSignup} />
               </motion.div>
             </>
           )}
