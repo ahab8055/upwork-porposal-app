@@ -13,7 +13,8 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AnimatedFormCard } from "@/components/auth/AnimatedFormCard";
 import { AnimatedInput } from "@/components/auth/AnimatedInput";
 import { AnimatedButton } from "@/components/auth/AnimatedButton";
-import { GoogleButton, GitHubButton } from "@/components/auth/SocialButtons";
+import { GitHubButton } from "@/components/auth/SocialButtons";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function LoginPage() {
   const loginMutation = useLogin();
@@ -51,10 +52,8 @@ export default function LoginPage() {
     }
   };
 
-  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-  const handleGoogleLogin = () => {
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  const handleGitHubLogin = () => {
+    toast.info('GitHub login coming soon.');
   };
 
   const loading = loginMutation.isPending;
@@ -203,8 +202,8 @@ export default function LoginPage() {
           </motion.div>
 
           <motion.div className="grid grid-cols-2 gap-3" variants={itemVariants}>
-            <GoogleButton onClick={handleGoogleLogin} />
-            <GitHubButton onClick={handleGoogleLogin} />
+            <GoogleLoginButton text="signin_with" />
+            <GitHubButton onClick={handleGitHubLogin} />
           </motion.div>
 
           <motion.p className="mt-6 text-center text-sm text-gray-600" variants={itemVariants}>

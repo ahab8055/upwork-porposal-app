@@ -44,4 +44,9 @@ export const authService = {
   acceptInvite: async (code: string): Promise<void> => {
     await apiClient.post(`/team/invite/${code}/accept`);
   },
+
+  googleLogin: async (data: { id_token: string }): Promise<AuthResponse> => {
+    const response = await apiClient.post<AuthResponse>('/auth/google-login', data);
+    return response.data;
+  },
 };
