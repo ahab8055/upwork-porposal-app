@@ -49,4 +49,12 @@ export const authService = {
     const response = await apiClient.post<AuthResponse>('/auth/google-login', data);
     return response.data;
   },
+
+  githubLogin: async (data: { code: string }): Promise<AuthResponse> => {
+    const body = new URLSearchParams({ code: data.code });
+    const response = await apiClient.post<AuthResponse>('/auth/github-login', body, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    return response.data;
+  },
 };

@@ -131,3 +131,25 @@ export function useGoogleAuth() {
     },
   });
 }
+
+export function useGitHubAuth() {
+  const router = useRouter();
+  const login = useAuthStore((state) => state.login);
+
+  return useMutation({
+    mutationFn: (data: { code: string }) => authService.githubLogin(data),
+    onSuccess: (data) => {
+      login(data.user, data.access_token);
+      toast.success("Signed in with GitHub!");
+
+      const hasWorkspace = data.user.default_workspace_id || (data.user.workspaces && data.user.workspaces.length > 0);
+      const canAccessDashboard = data.user.onboarding_completed && hasWorkspace;
+
+      router.push(canAccessDashboard ? "/dashboard" : "/onboarding");
+    },
+    onError: (error: AxiosError<{ detail?: string }>) => {
+      const message = error.response?.data?.detail || "GitHub login failed";
+      toast.error(message);
+    },
+  });
+}

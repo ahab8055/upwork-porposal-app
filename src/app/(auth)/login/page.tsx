@@ -53,7 +53,18 @@ export default function LoginPage() {
   };
 
   const handleGitHubLogin = () => {
-    toast.info('GitHub login coming soon.');
+    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+    if (!clientId) {
+      toast.error('GitHub login is not configured.');
+      return;
+    }
+    const callbackUrl = `${window.location.origin}/api/auth/callback/github`;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: callbackUrl,
+      scope: 'user:email',
+    });
+    window.location.href = `https://github.com/login/oauth/authorize?${params.toString()}`;
   };
 
   const loading = loginMutation.isPending;
