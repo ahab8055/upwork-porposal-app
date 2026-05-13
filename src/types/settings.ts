@@ -2,11 +2,20 @@ export interface Workspace {
   workspace_id: string;
   name: string;
   description: string;
+  industry?: string;
+  company_size?: string;
+  logo?: string;
+  logo_url?: string;
+  skills?: string[];
 }
 
 export interface UpdateWorkspaceRequest {
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
+  industry?: string;
+  company_size?: string;
+  skills?: string[];
+  logo?: File;
 }
 
 export interface ApiKeysStatus {
