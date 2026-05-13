@@ -36,6 +36,25 @@ export const authService = {
     return response.data;
   },
 
+  updateProfile: async (data: { name?: string; picture?: File }): Promise<User> => {
+    const formData = new FormData();
+
+    if (typeof data.name === "string") {
+      formData.append("name", data.name);
+    }
+
+    if (data.picture) {
+      formData.append("picture", data.picture);
+    }
+
+    const response = await apiClient.put<User>("/auth/profile", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
   getInviteDetails: async (code: string): Promise<InviteDetails> => {
     const response = await apiClient.get<InviteDetails>(`/team/invite/${code}`);
     return response.data;
