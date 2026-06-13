@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { knowledgeBaseService } from "@/services/knowledgeBaseService";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 import type {
   CreateProjectRequest,
   CreateResumeRequest,
@@ -11,6 +12,16 @@ export const useDocuments = () => {
   return useQuery({
     queryKey: ["documents"],
     queryFn: () => knowledgeBaseService.getDocuments(),
+    refetchInterval: (query) => {
+      const documents = query.state.data;
+      if (!documents?.length) return false;
+      const isProcessing = documents.some(
+        (doc) =>
+          doc.processing_status === "pending" ||
+          doc.processing_status === "processing"
+      );
+      return isProcessing ? 3000 : false;
+    },
   });
 };
 
@@ -24,8 +35,11 @@ export const useUploadDocument = () => {
       toast.success(`${variables.file.name} uploaded successfully`);
       queryClient.invalidateQueries({ queryKey: ["documents"] });
     },
-    onError: () => {
-      toast.error("Failed to upload document");
+    onError: (error: AxiosError<{ detail?: string }>, variables) => {
+      toast.error(
+        error.response?.data?.detail ||
+          `Failed to upload ${variables.file.name}`
+      );
     },
   });
 };

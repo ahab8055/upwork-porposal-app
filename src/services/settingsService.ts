@@ -38,17 +38,26 @@ export const settingsService = {
     }
 
     if (Array.isArray(data.skills)) {
-      data.skills.forEach((skill, index) => {
-        formData.append(`skills[${index}]`, skill);
-      });
+      formData.append("skills_json", JSON.stringify(data.skills));
     }
 
-    const response = await apiClient.put("/workspace", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
+    const response = await apiClient.put("/workspace", formData);
+
+    const body = response.data;
+    if (body?.workspace) {
+      return {
+        workspace_id: body.workspace.id,
+        name: body.workspace.name,
+        description: body.workspace.description,
+        industry: body.workspace.industry,
+        company_size: body.workspace.company_size,
+        skills: body.workspace.skills,
+        logo: body.workspace.logo,
+        logo_url: body.workspace.logo_url,
+      };
+    }
+
+    return body;
   },
 
   // Get API keys status

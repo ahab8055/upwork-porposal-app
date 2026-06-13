@@ -9,6 +9,7 @@ import {
   FolderOpen,
   History,
   BarChart3,
+  Users,
   CreditCard,
   Settings,
   LogOut,
@@ -28,6 +29,7 @@ export function Sidebar({ sidebarOpen = true, setSidebarOpen }: SidebarProps) {
     { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { path: "/knowledge-base", label: "Knowledge Base", icon: <FolderOpen className="w-5 h-5" /> },
     { path: "/proposals", label: "Proposals", icon: <History className="w-5 h-5" /> },
+    { path: "/team", label: "Team", icon: <Users className="w-5 h-5" /> },
     { path: "/analytics", label: "Analytics", icon: <BarChart3 className="w-5 h-5" /> },
   ];
 

@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TeamMember } from '@/types/onboarding';
+import { validateTeamInvite } from '@/lib/validations/team';
+import { toast } from 'sonner';
 
 interface TeamInviteStepProps {
   teamMembers: TeamMember[];
@@ -17,24 +19,17 @@ export function TeamInviteStep({ teamMembers, onChange }: TeamInviteStepProps) {
   const [email, setEmail] = useState('');
 
   const handleAddMember = () => {
-    const trimmedName = fullName.trim();
-    const trimmedEmail = email.trim().toLowerCase();
-
-    if (!trimmedName || !trimmedEmail) {
-      alert('Please fill in both name and email');
+    const validation = validateTeamInvite(fullName, email);
+    if (!validation.success) {
+      toast.error(validation.error);
       return;
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      alert('Please enter a valid email address');
-      return;
-    }
+    const { name: trimmedName, email: trimmedEmail } = validation.data;
 
     // Check for duplicate email
     if (teamMembers.some((member) => member.email === trimmedEmail)) {
-      alert('This email is already added');
+      toast.error('This email is already added');
       return;
     }
 

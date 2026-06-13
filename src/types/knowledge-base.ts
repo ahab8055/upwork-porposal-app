@@ -1,4 +1,15 @@
 export type StorageType = "database" | "s3";
+export type DocumentProcessingStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export interface UploadDocumentResponse {
+  document_id: string;
+  message: string;
+  processing_status?: DocumentProcessingStatus;
+}
 
 export interface Document {
   document_id: string;
@@ -8,6 +19,8 @@ export interface Document {
   file_path?: string;
   file_size?: number;
   extracted_skills?: string[];
+  processing_status?: DocumentProcessingStatus;
+  processing_error?: string | null;
   created_at: string;
   updated_at?: string;
   storage_type: StorageType;

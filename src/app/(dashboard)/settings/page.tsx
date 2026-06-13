@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SkillsSelector } from "@/components/skills/SkillsSelector";
-import { COMPANY_SIZES } from "@/types/onboarding";
-import { useAuthStore } from "@/store/auth-store";
 import { useWorkspace, useUpdateWorkspace, useApiKeys, useUpdateApiKeys } from "@/hooks/useSettings";
-import { useCurrentUser, useUpdateProfile } from "@/hooks/useAuth";
+import { useLogout } from "@/hooks/useAuth";
+import { ProfileForm } from "@/components/profile/ProfileForm";
+import { WorkspaceExperienceForm } from "@/components/workspace/WorkspaceExperienceForm";
 import {
   User,
   Building,
@@ -25,39 +24,13 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
-
-  // Profile state
-  const { data: profileData, isLoading: profileLoading } = useCurrentUser();
-  const updateProfileMutation = useUpdateProfile();
-  const profilePictureInputRef = useRef<HTMLInputElement | null>(null);
-  const [profileName, setProfileName] = useState("");
-  const [profileNameEdited, setProfileNameEdited] = useState(false);
-  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
-  
-  // Workspace state
+  const logoutMutation = useLogout();
   const { data: workspace, isLoading: workspaceLoading } = useWorkspace();
   const updateWorkspaceMutation = useUpdateWorkspace();
-  const workspaceLogoInputRef = useRef<HTMLInputElement | null>(null);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceDescription, setWorkspaceDescription] = useState("");
-  const [workspaceIndustry, setWorkspaceIndustry] = useState("");
-  const [workspaceCompanySize, setWorkspaceCompanySize] = useState("");
-  const [workspaceSkills, setWorkspaceSkills] = useState<string[]>([]);
-  const [workspaceLogoFile, setWorkspaceLogoFile] = useState<File | null>(null);
-  const [workspaceLogoPreview, setWorkspaceLogoPreview] = useState<string | null>(null);
   const [workspaceNameEdited, setWorkspaceNameEdited] = useState(false);
   const [workspaceDescriptionEdited, setWorkspaceDescriptionEdited] = useState(false);
-  const [workspaceIndustryEdited, setWorkspaceIndustryEdited] = useState(false);
-  const [workspaceCompanySizeEdited, setWorkspaceCompanySizeEdited] = useState(false);
-  const [workspaceSkillsEdited, setWorkspaceSkillsEdited] = useState(false);
-  const [workspaceErrors, setWorkspaceErrors] = useState<{
-    skills?: string;
-    company_size?: string;
-    industry?: string;
-  }>({});
   
   // API Keys state
   const { data: apiKeys, isLoading: apiKeysLoading } = useApiKeys();
@@ -70,89 +43,17 @@ export default function SettingsPage() {
   const [preferredModelEdited, setPreferredModelEdited] = useState(false);
   const [showClaudeKey, setShowClaudeKey] = useState(false);
   const [showOpenaiKey, setShowOpenaiKey] = useState(false);
-  const profileUser = profileData || user;
-  const profileUserId = profileUser && "id" in profileUser ? profileUser.id : "";
-
-  const displayedProfileName = profileNameEdited ? profileName : profileUser?.name || "";
-  const existingName = (profileUser?.name || "").trim();
-  const isNameChanged = profileNameEdited && displayedProfileName.trim() !== existingName;
-  const isPictureChanged = !!profilePictureFile;
-  const isProfileDirty = isNameChanged || isPictureChanged;
-
-  const displayedProfilePicture = profilePicturePreview || profileUser?.picture || null;
 
   const displayedWorkspaceName = workspaceNameEdited ? workspaceName : workspace?.name || "";
   const displayedWorkspaceDescription = workspaceDescriptionEdited
     ? workspaceDescription
     : workspace?.description || "";
-  const displayedWorkspaceIndustry = workspaceIndustryEdited
-    ? workspaceIndustry
-    : workspace?.industry || "";
-
-  const normalizeSkills = (skills: unknown) => {
-    if (Array.isArray(skills)) {
-      return Array.from(
-        new Set(
-          skills
-            .map((item) => (typeof item === "string" ? item.trim() : ""))
-            .filter(Boolean)
-        )
-      );
-    }
-
-    if (typeof skills === "string") {
-      return Array.from(
-        new Set(
-          skills
-            .split(/[\n,]/)
-            .map((item) => item.trim())
-            .filter(Boolean)
-        )
-      );
-    }
-
-    return [] as string[];
-  };
-
-  const normalizeCompanySize = (value: unknown) => {
-    if (typeof value !== "string") {
-      return "";
-    }
-    return value.trim();
-  };
-
-  const displayedWorkspaceCompanySize = workspaceCompanySizeEdited
-    ? workspaceCompanySize
-    : normalizeCompanySize(workspace?.company_size);
-  const existingWorkspaceSkills = normalizeSkills(workspace?.skills);
-  const displayedWorkspaceSkills = workspaceSkillsEdited
-    ? workspaceSkills
-    : existingWorkspaceSkills;
-  const displayedWorkspaceLogo = workspaceLogoPreview || workspace?.logo_url || workspace?.logo || null;
-
-  const existingSkillsArray = normalizeSkills(existingWorkspaceSkills);
-  const currentSkillsArray = normalizeSkills(displayedWorkspaceSkills);
-  const isWorkspaceNameChanged = workspaceNameEdited && displayedWorkspaceName.trim() !== (workspace?.name || "").trim();
+  const isWorkspaceNameChanged =
+    workspaceNameEdited && displayedWorkspaceName.trim() !== (workspace?.name || "").trim();
   const isWorkspaceDescriptionChanged =
-    workspaceDescriptionEdited && displayedWorkspaceDescription.trim() !== (workspace?.description || "").trim();
-  const isWorkspaceIndustryChanged =
-    workspaceIndustryEdited && displayedWorkspaceIndustry.trim() !== (workspace?.industry || "").trim();
-  const isWorkspaceCompanySizeChanged =
-    workspaceCompanySizeEdited && displayedWorkspaceCompanySize !== normalizeCompanySize(workspace?.company_size);
-  const isWorkspaceSkillsChanged =
-    workspaceSkillsEdited && JSON.stringify(currentSkillsArray) !== JSON.stringify(existingSkillsArray);
-  const isWorkspaceLogoChanged = !!workspaceLogoFile;
-  const companySizeOptions =
-    displayedWorkspaceCompanySize && !COMPANY_SIZES.includes(displayedWorkspaceCompanySize)
-      ? [displayedWorkspaceCompanySize, ...COMPANY_SIZES]
-      : COMPANY_SIZES;
-  const isWorkspaceDirty =
-    isWorkspaceNameChanged ||
-    isWorkspaceDescriptionChanged ||
-    isWorkspaceIndustryChanged ||
-    isWorkspaceCompanySizeChanged ||
-    isWorkspaceSkillsChanged ||
-    isWorkspaceLogoChanged;
+    workspaceDescriptionEdited &&
+    displayedWorkspaceDescription.trim() !== (workspace?.description || "").trim();
+  const isWorkspaceDetailsDirty = isWorkspaceNameChanged || isWorkspaceDescriptionChanged;
 
   const displayedPreferredModel = preferredModelEdited
     ? preferredModel
@@ -164,90 +65,21 @@ export default function SettingsPage() {
     ? openaiApiKey
     : apiKeys?.openai_api_key || "";
 
-  useEffect(() => {
-    return () => {
-      if (profilePicturePreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(profilePicturePreview);
+  const handleSaveWorkspaceDetails = () => {
+    updateWorkspaceMutation.mutate(
+      {
+        name: displayedWorkspaceName.trim(),
+        description: displayedWorkspaceDescription.trim(),
+      },
+      {
+        onSuccess: (updatedWorkspace) => {
+          setWorkspaceName(updatedWorkspace.name || "");
+          setWorkspaceDescription(updatedWorkspace.description || "");
+          setWorkspaceNameEdited(false);
+          setWorkspaceDescriptionEdited(false);
+        },
       }
-    };
-  }, [profilePicturePreview]);
-
-  useEffect(() => {
-    return () => {
-      if (workspaceLogoPreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(workspaceLogoPreview);
-      }
-    };
-  }, [workspaceLogoPreview]);
-
-  const handleSaveWorkspace = () => {
-    const validationErrors: {
-      skills?: string;
-      company_size?: string;
-      industry?: string;
-    } = {};
-
-    const parsedSkills = normalizeSkills(displayedWorkspaceSkills);
-
-    if (!displayedWorkspaceIndustry.trim()) {
-      validationErrors.industry = "Company industry is required";
-    }
-
-    if (!displayedWorkspaceCompanySize.trim()) {
-      validationErrors.company_size = "Company size is required";
-    }
-
-    if (parsedSkills.length === 0) {
-      validationErrors.skills = "Add at least one skill";
-    }
-
-    setWorkspaceErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      return;
-    }
-
-    updateWorkspaceMutation.mutate({
-      name: displayedWorkspaceName.trim(),
-      description: displayedWorkspaceDescription.trim(),
-      industry: displayedWorkspaceIndustry.trim(),
-      company_size: displayedWorkspaceCompanySize,
-      skills: parsedSkills,
-      logo: workspaceLogoFile || undefined,
-    }, {
-      onSuccess: (updatedWorkspace) => {
-        setWorkspaceName(updatedWorkspace.name || "");
-        setWorkspaceDescription(updatedWorkspace.description || "");
-        setWorkspaceIndustry(updatedWorkspace.industry || "");
-        setWorkspaceCompanySize(normalizeCompanySize(updatedWorkspace.company_size));
-        setWorkspaceSkills(normalizeSkills(updatedWorkspace.skills));
-        setWorkspaceNameEdited(false);
-        setWorkspaceDescriptionEdited(false);
-        setWorkspaceIndustryEdited(false);
-        setWorkspaceCompanySizeEdited(false);
-        setWorkspaceSkillsEdited(false);
-        setWorkspaceErrors({});
-        if (workspaceLogoPreview?.startsWith("blob:")) {
-          URL.revokeObjectURL(workspaceLogoPreview);
-        }
-        setWorkspaceLogoFile(null);
-        setWorkspaceLogoPreview(null);
-      }
-    });
-  };
-
-  const handleWorkspaceLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (workspaceLogoPreview?.startsWith("blob:")) {
-      URL.revokeObjectURL(workspaceLogoPreview);
-    }
-
-    setWorkspaceLogoFile(file);
-    setWorkspaceLogoPreview(URL.createObjectURL(file));
+    );
   };
 
   const handleSaveApiKeys = () => {
@@ -274,45 +106,6 @@ export default function SettingsPage() {
         setPreferredModelEdited(false);
         setClaudeApiKeyEdited(false);
         setOpenaiApiKeyEdited(false);
-      },
-    });
-  };
-
-  const handleProfilePictureChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (profilePicturePreview?.startsWith("blob:")) {
-      URL.revokeObjectURL(profilePicturePreview);
-    }
-
-    setProfilePictureFile(file);
-    setProfilePicturePreview(URL.createObjectURL(file));
-  };
-
-  const handleSaveProfile = () => {
-    const payload: { name?: string; picture?: File } = {};
-    const trimmedName = displayedProfileName.trim();
-
-    if (isNameChanged) {
-      payload.name = trimmedName;
-    }
-
-    if (profilePictureFile) {
-      payload.picture = profilePictureFile;
-    }
-
-    updateProfileMutation.mutate(payload, {
-      onSuccess: (updatedUser) => {
-        if (profilePicturePreview?.startsWith("blob:")) {
-          URL.revokeObjectURL(profilePicturePreview);
-        }
-        setProfilePictureFile(null);
-        setProfileName(updatedUser.name || "");
-        setProfileNameEdited(false);
-        setProfilePicturePreview(null);
       },
     });
   };
@@ -344,157 +137,21 @@ export default function SettingsPage() {
           <TabsContent value="profile" className="space-y-6">
             <div className="bg-white rounded-xl border border-slate-200 p-6">
               <h3 className="font-heading text-lg font-semibold text-slate-900 mb-6">Profile Information</h3>
-
-              {profileLoading ? (
-                <div className="h-40 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-6 mb-6">
-                    <button
-                      type="button"
-                      onClick={() => profilePictureInputRef.current?.click()}
-                      className="relative w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden group"
-                      aria-label="Change profile picture"
-                    >
-                      {displayedProfilePicture ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={displayedProfilePicture} alt={profileUser?.name || "User"} className="w-20 h-20 rounded-full object-cover" />
-                      ) : (
-                        <span className="text-3xl font-bold text-blue-600">
-                          {profileUser?.name?.charAt(0)?.toUpperCase() || "?"}
-                        </span>
-                      )}
-                      <span className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-colors" />
-                    </button>
-                    <div>
-                      <h4 className="font-heading text-xl font-semibold text-slate-900">{profileUser?.name}</h4>
-                      <p className="text-slate-500">{profileUser?.email}</p>
-                      <p className="text-xs text-slate-500 mt-1">Click avatar to update profile image</p>
-                    </div>
-                    <Input
-                      ref={profilePictureInputRef}
-                      id="profile-picture"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureChange}
-                      className="hidden"
-                      data-testid="profile-picture-input"
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="profile-name">Name</Label>
-                      <Input
-                        id="profile-name"
-                        value={displayedProfileName}
-                        onChange={(e) => {
-                          setProfileName(e.target.value);
-                          setProfileNameEdited(true);
-                        }}
-                        className="mt-1.5"
-                        placeholder="Your full name"
-                        data-testid="profile-name-input"
-                      />
-                    </div>
-                    {profilePictureFile && (
-                      <p className="text-xs text-slate-500">
-                        Selected image: {profilePictureFile.name}
-                      </p>
-                    )}
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        value={profileUser?.email || ""}
-                        disabled
-                        className="mt-1.5 bg-slate-50"
-                      />
-                    </div>
-                    <div>
-                      <Label>User ID</Label>
-                      <Input
-                        value={profileUserId || ""}
-                        disabled
-                        className="mt-1.5 bg-slate-50 font-mono text-sm"
-                      />
-                    </div>
-                    <div className="pt-2">
-                      <Button
-                        onClick={handleSaveProfile}
-                        disabled={updateProfileMutation.isPending || !isProfileDirty}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                        data-testid="save-profile-btn"
-                      >
-                        {updateProfileMutation.isPending ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Save className="w-4 h-4 mr-2" />
-                        )}
-                        Save Profile
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <h3 className="font-heading text-lg font-semibold text-slate-900 mb-4">Account Actions</h3>
-              <Button
-                variant="outline"
-                className="text-red-600 border-red-200 hover:bg-red-50"
-                onClick={logout}
-                data-testid="logout-btn"
-              >
-                Sign Out
-              </Button>
+              <ProfileForm />
             </div>
           </TabsContent>
 
           {/* Workspace Tab */}
           <TabsContent value="workspace" className="space-y-6">
             <div className="bg-white rounded-xl border border-slate-200 p-6">
-              <h3 className="font-heading text-lg font-semibold text-slate-900 mb-6">Workspace Settings</h3>
-              
+              <h3 className="font-heading text-lg font-semibold text-slate-900 mb-6">Workspace Details</h3>
+
               {workspaceLoading ? (
                 <div className="h-40 flex items-center justify-center">
                   <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-6">
-                    <button
-                      type="button"
-                      onClick={() => workspaceLogoInputRef.current?.click()}
-                      className="relative w-20 h-20 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden group"
-                      aria-label="Change workspace logo"
-                    >
-                      {displayedWorkspaceLogo ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={displayedWorkspaceLogo} alt={displayedWorkspaceName || "Workspace logo"} className="w-full h-full object-cover" />
-                      ) : (
-                        <Building className="w-8 h-8 text-slate-400" />
-                      )}
-                      <span className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-colors" />
-                    </button>
-                    <div>
-                      <p className="text-sm text-slate-700">Workspace logo</p>
-                      <p className="text-xs text-slate-500 mt-1">Click logo to upload PNG, JPG, or WEBP</p>
-                      {workspaceLogoFile && (
-                        <p className="text-xs text-slate-500 mt-1">Selected: {workspaceLogoFile.name}</p>
-                      )}
-                    </div>
-                    <Input
-                      ref={workspaceLogoInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleWorkspaceLogoChange}
-                      className="hidden"
-                      data-testid="workspace-logo-input"
-                    />
-                  </div>
                   <div>
                     <Label>Workspace Name</Label>
                     <Input
@@ -507,49 +164,6 @@ export default function SettingsPage() {
                       className="mt-1.5"
                       data-testid="workspace-name-input"
                     />
-                  </div>
-                  <div>
-                    <Label>Company Industry</Label>
-                    <Input
-                      value={displayedWorkspaceIndustry}
-                      onChange={(e) => {
-                        setWorkspaceIndustry(e.target.value);
-                        setWorkspaceIndustryEdited(true);
-                        if (workspaceErrors.industry) {
-                          setWorkspaceErrors((prev) => ({ ...prev, industry: undefined }));
-                        }
-                      }}
-                      placeholder="e.g. Information Technology"
-                      className="mt-1.5"
-                      data-testid="workspace-industry-input"
-                    />
-                    {workspaceErrors.industry && (
-                      <p className="mt-1 text-xs text-red-600">{workspaceErrors.industry}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label>Company Size</Label>
-                    <Select value={displayedWorkspaceCompanySize} onValueChange={(value) => {
-                      setWorkspaceCompanySize(value);
-                      setWorkspaceCompanySizeEdited(true);
-                      if (workspaceErrors.company_size) {
-                        setWorkspaceErrors((prev) => ({ ...prev, company_size: undefined }));
-                      }
-                    }}>
-                      <SelectTrigger className="mt-1.5" data-testid="workspace-company-size-select">
-                        <SelectValue placeholder="Select company size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {companySizeOptions.map((size) => (
-                          <SelectItem key={size} value={size}>
-                            {size}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {workspaceErrors.company_size && (
-                      <p className="mt-1 text-xs text-red-600">{workspaceErrors.company_size}</p>
-                    )}
                   </div>
                   <div>
                     <Label>Description</Label>
@@ -565,26 +179,6 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <Label>Skills</Label>
-                    <div className="mt-1.5">
-                      <SkillsSelector
-                        skills={displayedWorkspaceSkills}
-                        onChange={(skills) => {
-                          setWorkspaceSkills(skills);
-                        setWorkspaceSkillsEdited(true);
-                        if (workspaceErrors.skills) {
-                          setWorkspaceErrors((prev) => ({ ...prev, skills: undefined }));
-                        }
-                      }}
-                        inputLabel="Search & Add Workspace Skills"
-                        placeholder="Search skills for this workspace..."
-                      />
-                    </div>
-                    {workspaceErrors.skills && (
-                      <p className="mt-1 text-xs text-red-600">{workspaceErrors.skills}</p>
-                    )}
-                  </div>
-                  <div>
                     <Label>Workspace ID</Label>
                     <Input
                       value={workspace?.workspace_id || ""}
@@ -592,10 +186,10 @@ export default function SettingsPage() {
                       className="mt-1.5 bg-slate-50 font-mono text-sm"
                     />
                   </div>
-                  <div className="pt-4">
+                  <div className="pt-2">
                     <Button
-                      onClick={handleSaveWorkspace}
-                      disabled={updateWorkspaceMutation.isPending || !isWorkspaceDirty}
+                      onClick={handleSaveWorkspaceDetails}
+                      disabled={updateWorkspaceMutation.isPending || !isWorkspaceDetailsDirty}
                       className="bg-blue-600 hover:bg-blue-700 text-white"
                       data-testid="save-workspace-btn"
                     >
@@ -604,11 +198,18 @@ export default function SettingsPage() {
                       ) : (
                         <Save className="w-4 h-4 mr-2" />
                       )}
-                      Save Changes
+                      Save Details
                     </Button>
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-200 p-6">
+              <h3 className="font-heading text-lg font-semibold text-slate-900 mb-6">
+                Skills & Company Info
+              </h3>
+              <WorkspaceExperienceForm />
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 p-6">

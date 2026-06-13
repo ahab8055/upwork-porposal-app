@@ -56,15 +56,11 @@ export const onboardingService = {
     if (onboardingData.logo) {
       onboardingFormData.append("logo", onboardingData.logo);
     }
-    onboardingData.skills.forEach((skill, index) => onboardingFormData.append(`skills[${index}]`, skill));
+    onboardingData.skills.forEach((skill) => onboardingFormData.append("skills", skill));
+    onboardingFormData.append("skills_json", JSON.stringify(onboardingData.skills));
     const response = await apiClient.post<OnboardingCompleteResponse>(
       "/auth/onboarding/complete",
-      onboardingFormData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
+      onboardingFormData
     );
 
     // If onboarding returned a workspace_id, use the callback to update state

@@ -41,6 +41,17 @@ export interface InviteTokenPayload {
   iat: number;
 }
 
+export interface InviteResponseItem {
+  invite_id: string;
+  email: string;
+  workspace_name: string;
+}
+
+export interface BulkInviteResponse {
+  invites: InviteResponseItem[];
+}
+
+/** @deprecated Use InviteResponseItem / BulkInviteResponse */
 export interface InviteResponse {
   member_id: string;
   invite_code: string;
@@ -53,4 +64,10 @@ export interface InviteDetails {
   workspace_name: string;
   invited_by: string;
   role: WorkspaceRole;
+}
+
+export interface UpdateRoleResponse {
+  message: string;
+  new_role: WorkspaceRole;
+  member_id: string;
 }

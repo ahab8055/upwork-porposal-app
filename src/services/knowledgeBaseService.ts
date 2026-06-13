@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/axios";
 import type {
   Document,
   DocumentDownloadResponse,
+  UploadDocumentResponse,
   Project,
   Resume,
   CreateProjectRequest,
@@ -15,17 +16,20 @@ export const knowledgeBaseService = {
     return response.data;
   },
 
-  uploadDocument: async (file: File, documentType: string = "other", title?: string): Promise<Document> => {
+  uploadDocument: async (
+    file: File,
+    documentType: string = "other",
+    title?: string
+  ): Promise<UploadDocumentResponse> => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("title", title || file.name);
     formData.append("document_type", documentType);
 
-    const response = await apiClient.post<Document>("/documents/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await apiClient.post<UploadDocumentResponse>(
+      "/documents/upload",
+      formData
+    );
     return response.data;
   },
 
@@ -38,10 +42,14 @@ export const knowledgeBaseService = {
     return response.data;
   },
 
+  viewDocument: async (id: string): Promise<void> => {
+    const { download_url } = await knowledgeBaseService.getDocumentDownloadUrl(id);
+    window.open(download_url, "_blank", "noopener,noreferrer");
+  },
+
   downloadDocument: async (id: string, filename?: string): Promise<void> => {
     const { download_url } = await knowledgeBaseService.getDocumentDownloadUrl(id);
 
-    // Create a temporary link to download the file
     const link = document.createElement("a");
     link.href = download_url;
     link.target = "_blank";
