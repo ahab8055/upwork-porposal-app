@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   GoogleLogin,
   useGoogleOAuth,
@@ -43,7 +43,14 @@ function GoogleLoginButtonInner({ text = 'signin_with' }: GoogleLoginButtonProps
   const containerRef = useRef<HTMLDivElement>(null);
   const [buttonWidth, setButtonWidth] = useState(0);
 
-  const googleReady = scriptLoadedSuccessfully;
+  const loginUri = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return '';
+    }
+    return `${window.location.origin}/api/auth/callback/google`;
+  }, []);
+
+  const googleReady = scriptLoadedSuccessfully && Boolean(loginUri);
 
   useEffect(() => {
     const element = containerRef.current;
@@ -74,7 +81,9 @@ function GoogleLoginButtonInner({ text = 'signin_with' }: GoogleLoginButtonProps
   );
 
   const handleError = useCallback(() => {
-    toast.error('Google sign-in failed. Please try again.');
+    toast.error(
+      'Google sign-in failed. If you use an ad blocker, disable it for this site and try again.'
+    );
   }, []);
 
   const handleUnavailableClick = () => {
@@ -106,6 +115,8 @@ function GoogleLoginButtonInner({ text = 'signin_with' }: GoogleLoginButtonProps
             size="large"
             theme="outline"
             width={buttonWidth}
+            ux_mode="redirect"
+            login_uri={loginUri}
             containerProps={{
               className: 'h-full w-full',
               style: { width: '100%', height: '100%' },

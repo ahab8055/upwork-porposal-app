@@ -35,6 +35,22 @@ function LoginPageContent() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showVerificationWarning, setShowVerificationWarning] = useState(false);
 
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (!error?.startsWith("google_")) {
+      return;
+    }
+
+    const messages: Record<string, string> = {
+      google_csrf: "Google sign-in failed security check. Please try again.",
+      google_no_credential: "Google sign-in failed. No credential received.",
+      google_misconfigured: "Google sign-in is not configured on the server.",
+      google_auth_failed: "Google sign-in failed. Please try again.",
+    };
+
+    toast.error(messages[error] ?? "Google sign-in failed. Please try again.");
+  }, [searchParams]);
+
   // Check for 403 error to show verification warning
   useEffect(() => {
     if (loginMutation.error?.response?.status === 403) {
