@@ -1,12 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const AUTH_TOKEN_KEY = 'auth-token';
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-
-function redirectToLogin(request: NextRequest, error: string) {
+function loginRedirect(request: NextRequest, error: string) {
   return NextResponse.redirect(
-    new URL(`/login?error=${encodeURIComponent(error)}`, request.nextUrl.origin)
+    new URL(`/login?error=${encodeURIComponent(error)}`, request.nextUrl.origin),
+    303
   );
+}
+
+function handoffHtml(credential: string) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Signing in…</title>
+</head>
+<body>
+  <p>Signing you in with Google…</p>
+  <script>
+    (function () {
+      try {
+        sessionStorage.setItem('google_id_token', ${JSON.stringify(credential)});
+        window.location.replace('/google-callback');
+      } catch (e) {
+        window.location.replace('/login?error=google_handoff_failed');
+      }
+    })();
+  </script>
+</body>
+</html>`;
 }
 
 export async function POST(request: NextRequest) {
@@ -20,50 +41,18 @@ export async function POST(request: NextRequest) {
     !csrfTokenBody ||
     csrfTokenCookie !== String(csrfTokenBody)
   ) {
-    return redirectToLogin(request, 'google_csrf');
+    return loginRedirect(request, 'google_csrf');
   }
 
   if (!credential || typeof credential !== 'string') {
-    return redirectToLogin(request, 'google_no_credential');
+    return loginRedirect(request, 'google_no_credential');
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  if (!backendUrl) {
-    return redirectToLogin(request, 'google_misconfigured');
-  }
-
-  let authResponse: { access_token?: string };
-  try {
-    const response = await fetch(`${backendUrl}/api/v1/auth/google-login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id_token: credential }),
-    });
-
-    if (!response.ok) {
-      return redirectToLogin(request, 'google_auth_failed');
-    }
-
-    authResponse = await response.json();
-  } catch {
-    return redirectToLogin(request, 'google_auth_failed');
-  }
-
-  const accessToken = authResponse.access_token;
-  if (!accessToken) {
-    return redirectToLogin(request, 'google_auth_failed');
-  }
-
-  const redirectResponse = NextResponse.redirect(
-    new URL('/google-callback', request.nextUrl.origin)
-  );
-
-  redirectResponse.cookies.set(AUTH_TOKEN_KEY, accessToken, {
-    path: '/',
-    maxAge: COOKIE_MAX_AGE,
-    sameSite: 'lax',
-    secure: request.nextUrl.protocol === 'https:',
+  return new NextResponse(handoffHtml(credential), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
   });
-
-  return redirectResponse;
 }

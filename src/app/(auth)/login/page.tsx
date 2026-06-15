@@ -44,6 +44,7 @@ function LoginPageContent() {
     const messages: Record<string, string> = {
       google_csrf: "Google sign-in failed security check. Please try again.",
       google_no_credential: "Google sign-in failed. No credential received.",
+      google_handoff_failed: "Google sign-in failed. Please try again.",
       google_misconfigured: "Google sign-in is not configured on the server.",
       google_auth_failed: "Google sign-in failed. Please try again.",
     };

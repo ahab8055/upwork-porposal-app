@@ -3,13 +3,11 @@
 import { Suspense, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { authService } from '@/services/authService';
-import { useAuthStore } from '@/store/auth-store';
-import { getAuthCookie } from '@/lib/cookies';
+import { useGoogleAuth } from '@/hooks/useAuth';
 
 function GoogleCallbackContent() {
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
+  const { mutate: googleAuth, isPending } = useGoogleAuth();
   const hasFired = useRef(false);
 
   useEffect(() => {
@@ -18,40 +16,28 @@ function GoogleCallbackContent() {
     }
     hasFired.current = true;
 
-    async function completeGoogleSignIn() {
-      const token = getAuthCookie();
-      if (!token) {
-        toast.error('Google sign-in failed. No session token received.');
-        router.replace('/login');
-        return;
-      }
+    const idToken = sessionStorage.getItem('google_id_token');
+    sessionStorage.removeItem('google_id_token');
 
-      localStorage.setItem('token', token);
-
-      try {
-        const user = await authService.getCurrentUser();
-        login(user, token);
-        toast.success('Signed in with Google!');
-
-        const hasWorkspace =
-          user.default_workspace_id ||
-          (user.workspaces && user.workspaces.length > 0);
-        const canAccessDashboard = user.onboarding_completed && hasWorkspace;
-
-        router.replace(canAccessDashboard ? '/dashboard' : '/onboarding');
-      } catch {
-        toast.error('Google sign-in failed. Please try again.');
-        router.replace('/login');
-      }
+    if (!idToken) {
+      toast.error('Google sign-in failed. No credential received.');
+      router.replace('/login');
+      return;
     }
 
-    void completeGoogleSignIn();
-  }, [login, router]);
+    googleAuth({ id_token: idToken });
+  }, [googleAuth, router]);
 
   return (
     <div className="text-center space-y-4">
-      <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-800 rounded-full animate-spin mx-auto" />
-      <p className="text-sm text-gray-600">Signing you in with Google…</p>
+      {isPending ? (
+        <>
+          <div className="w-10 h-10 border-4 border-gray-200 border-t-gray-800 rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-gray-600">Signing you in with Google…</p>
+        </>
+      ) : (
+        <p className="text-sm text-gray-600">Redirecting…</p>
+      )}
     </div>
   );
 }
