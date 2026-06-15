@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/hooks/useAuth";
+import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
+import { isPremiumRoute } from "@/lib/subscription-access";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import {
   LayoutDashboard,
@@ -14,6 +16,7 @@ import {
   Settings,
   LogOut,
   Zap,
+  Lock,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,6 +27,7 @@ interface SidebarProps {
 export function Sidebar({ sidebarOpen = true, setSidebarOpen }: SidebarProps) {
   const pathname = usePathname();
   const logoutMutation = useLogout();
+  const { isExpired } = useSubscriptionAccess();
 
   const mainNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -76,7 +80,9 @@ export function Sidebar({ sidebarOpen = true, setSidebarOpen }: SidebarProps) {
 
         {/* Main Navigation */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
-          {mainNavItems.map((item) => (
+          {mainNavItems.map((item) => {
+            const isLocked = isExpired && isPremiumRoute(item.path);
+            return (
             <Link
               key={item.path}
               href={item.path}
@@ -84,14 +90,16 @@ export function Sidebar({ sidebarOpen = true, setSidebarOpen }: SidebarProps) {
                 isActive(item.path)
                   ? "bg-blue-50 text-blue-600 font-medium"
                   : "text-slate-700 hover:bg-slate-100"
-              }`}
+              } ${isLocked ? "opacity-80" : ""}`}
               data-testid={`nav-${item.label.toLowerCase().replace(" ", "-")}`}
               onClick={handleNavClick}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {isLocked && <Lock className="h-4 w-4 text-slate-400" />}
             </Link>
-          ))}
+          );
+          })}
         </nav>
 
         {/* Bottom Section */}

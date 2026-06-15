@@ -132,12 +132,12 @@ export default async function LandingPage() {
               >
                 Features
               </a>
-              <a
-                href="#pricing"
+              <Link
+                href="/pricing"
                 className="text-slate-600 hover:text-slate-900 transition-colors"
               >
                 Pricing
-              </a>
+              </Link>
               {isAuthenticated ? (
                 <Link
                   href="/dashboard"

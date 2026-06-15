@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useCurrentUser } from "@/hooks/useAuth";
+import { useSubscriptionAccess } from "@/hooks/useSubscriptionAccess";
 import { Sidebar } from "@/components/Sidebar";
+import { TrialStatusBanner } from "@/components/billing/TrialStatusBanner";
+import { SubscriptionExpiredBanner } from "@/components/billing/SubscriptionExpiredBanner";
+import { SubscriptionExpiredExperience } from "@/components/billing/SubscriptionExpiredExperience";
+import { isPremiumRoute } from "@/lib/subscription-access";
 import { Menu, Zap, Loader2 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -14,8 +19,14 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const setUser = useAuthStore((state) => state.setUser);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isExpired, isLoading: isAccessLoading } = useSubscriptionAccess();
+
+  const isPremium = isPremiumRoute(pathname);
+  const shouldBlockPremium =
+    !isAccessLoading && isExpired && isPremium;
 
   // Fetch fresh user data from /api/v1/auth/me to check onboarding status
   const {
@@ -110,8 +121,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
+        <TrialStatusBanner />
+        <SubscriptionExpiredBanner />
+
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          {isAccessLoading && isPremium ? (
+            <div className="flex min-h-[40vh] items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            </div>
+          ) : shouldBlockPremium ? (
+            <Suspense fallback={<div className="min-h-[40vh] p-8" />}>
+              <div className="p-6 md:p-8">
+                <SubscriptionExpiredExperience
+                  blockedPath={pathname}
+                  showReturnLink={false}
+                />
+              </div>
+            </Suspense>
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );

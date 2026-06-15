@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion, Variants } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Mail, Lock, AlertCircle } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { useLogin } from "@/hooks/useAuth";
 import { loginSchema } from "@/lib/validations/auth";
 import { AuthLayout } from "@/components/auth/AuthLayout";
@@ -17,7 +18,17 @@ import { GitHubButton } from "@/components/auth/SocialButtons";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 
 export default function LoginPage() {
-  const loginMutation = useLogin();
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
+  const loginMutation = useLogin(redirectTo);
   const prefersReducedMotion = useReducedMotion();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

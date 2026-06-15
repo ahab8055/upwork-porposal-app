@@ -39,7 +39,7 @@ export function useVerifyEmail() {
   });
 }
 
-export function useLogin() {
+export function useLogin(redirectTo?: string | null) {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
 
@@ -49,9 +49,16 @@ export function useLogin() {
       login(data.user, data.access_token);
       toast.success("Welcome back!");
 
-      // Check if user has workspace and completed onboarding
-      const hasWorkspace = data.user.default_workspace_id || (data.user.workspaces && data.user.workspaces.length > 0);
-      const canAccessDashboard = data.user.onboarding_completed && hasWorkspace;
+      const hasWorkspace =
+        data.user.default_workspace_id ||
+        (data.user.workspaces && data.user.workspaces.length > 0);
+      const canAccessDashboard =
+        data.user.onboarding_completed && hasWorkspace;
+
+      if (redirectTo && canAccessDashboard) {
+        router.push(redirectTo);
+        return;
+      }
 
       router.push(canAccessDashboard ? "/dashboard" : "/onboarding");
     },

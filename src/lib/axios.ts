@@ -1,4 +1,5 @@
 import axios from "axios";
+import { isPremiumRoute } from "@/lib/subscription-access";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 export const API_BASE_URL = `${BACKEND_URL}/api/v1`;
@@ -41,11 +42,26 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear token on unauthorized
       localStorage.removeItem("token");
       localStorage.removeItem("currentWorkspaceId");
-      // You can dispatch a logout action here if needed
     }
+
+    if (error.response?.status === 402 && typeof window !== "undefined") {
+      const subscriptionStatus =
+        error.response.headers?.["x-subscription-status"] ??
+        error.response.headers?.["X-Subscription-Status"];
+
+      if (subscriptionStatus === "expired") {
+        const currentPath = window.location.pathname;
+        const isSubscriptionRoute = currentPath.startsWith("/subscription");
+
+        if (!isSubscriptionRoute && !isPremiumRoute(currentPath)) {
+          const redirectUrl = `/subscription/expired?from=${encodeURIComponent(currentPath)}`;
+          window.location.assign(redirectUrl);
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );
