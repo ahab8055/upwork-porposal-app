@@ -7,6 +7,7 @@ import {
   JobAnalysisResultsFailed,
   JobAnalysisResultsLoading,
 } from "@/components/job-analysis/JobAnalysisResults";
+import { ProposalGenerationPanel } from "@/components/proposals/ProposalGenerationPanel";
 import { useJobAnalysisDetail } from "@/hooks/useJobAnalysis";
 
 interface JobAnalysisDetailViewProps {
@@ -65,7 +66,15 @@ export function JobAnalysisDetailView({
         />
       )}
 
-      {analysis && isCompleted && <JobAnalysisResults analysis={analysis} />}
+      {analysis && isCompleted && (
+        <>
+          <JobAnalysisResults analysis={analysis} />
+          <ProposalGenerationPanel
+            analysisId={analysis.id}
+            jobTitle={analysis.job_title}
+          />
+        </>
+      )}
     </div>
   );
 }

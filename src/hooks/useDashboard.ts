@@ -1,23 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "@/services/dashboardService";
 
-export function useDashboardStats() {
+export function useDashboardOverview(recentLimit: number = 5) {
   return useQuery({
-    queryKey: ["dashboardStats"],
-    queryFn: () => dashboardService.getStats(),
-  });
-}
-
-export function useRecentProposals(limit: number = 5) {
-  return useQuery({
-    queryKey: ["recentProposals", limit],
-    queryFn: () => dashboardService.getRecentProposals(limit),
-  });
-}
-
-export function useProposals() {
-  return useQuery({
-    queryKey: ["proposals"],
-    queryFn: () => dashboardService.getProposals(),
+    queryKey: ["dashboardOverview", recentLimit],
+    queryFn: () => dashboardService.getOverview(recentLimit),
   });
 }

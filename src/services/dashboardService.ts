@@ -1,19 +1,12 @@
 import { apiClient } from "@/lib/axios";
-import type { DashboardStats, Proposal } from "@/types/dashboard";
+import type { DashboardOverview } from "@/types/dashboard";
 
 export const dashboardService = {
-  getStats: async (): Promise<DashboardStats> => {
-    const response = await apiClient.get<DashboardStats>("/stats");
+  getOverview: async (recentLimit = 5): Promise<DashboardOverview> => {
+    const response = await apiClient.get<DashboardOverview>(
+      "/dashboard/overview",
+      { params: { recent_limit: recentLimit } }
+    );
     return response.data;
-  },
-
-  getProposals: async (): Promise<Proposal[]> => {
-    const response = await apiClient.get<Proposal[]>("/proposals");
-    return response.data;
-  },
-
-  getRecentProposals: async (limit: number = 5): Promise<Proposal[]> => {
-    const proposals = await dashboardService.getProposals();
-    return proposals.slice(0, limit);
   },
 };
