@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { buildCheckoutReturnUrls } from "@/lib/checkout-urls";
 import { billingService } from "@/services/billingService";
@@ -95,8 +95,15 @@ export function useStartCheckout() {
 
   const startCheckout = useCallback(
     (plan: Pick<BillingPlanItem, "plan_code" | "is_purchasable">) => {
+      if (plan.plan_code === "free_trial") {
+        toast.error("Use Start Free Trial to activate the trial plan.");
+        return;
+      }
+
       if (!plan.is_purchasable) {
-        toast.error("This plan is not available for online checkout yet.");
+        toast.error(
+          "This plan is not linked to Stripe yet. Add STRIPE_PRO_PRICE_ID / STRIPE_AGENCY_PRICE_ID on the API."
+        );
         return;
       }
 
@@ -119,4 +126,23 @@ export function useStartCheckout() {
     checkoutPlanCode: checkoutMutation.variables?.plan_code ?? null,
     checkoutError: checkoutMutation.error,
   };
+}
+
+export function useStartFreeTrial() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => billingService.startFreeTrial(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspace-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["trial-status"] });
+      queryClient.invalidateQueries({ queryKey: ["current-subscription"] });
+      toast.success("Free trial activated!");
+    },
+    onError: (error: AxiosError<{ detail?: string }>) => {
+      const message =
+        error.response?.data?.detail || "Unable to start free trial.";
+      toast.error(message);
+    },
+  });
 }

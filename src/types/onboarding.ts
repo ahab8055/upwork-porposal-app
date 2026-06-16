@@ -3,6 +3,7 @@ export interface OnboardingData {
   skills: string[];
   teamMembers: TeamMember[];
   knowledgeBaseFiles: KnowledgeBaseFile[];
+  selectedPlanCode: string | null;
 }
 
 export interface CompanyInfo {

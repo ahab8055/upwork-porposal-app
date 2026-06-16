@@ -8,19 +8,21 @@ import { useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { WelcomeStep } from '@/components/onboarding/WelcomeStep';
+import { PlanSelectionStep } from '@/components/onboarding/PlanSelectionStep';
 import { CompanyInfoStep } from '@/components/onboarding/CompanyInfoStep';
 import { SkillsStep } from '@/components/onboarding/SkillsStep';
 import { TeamInviteStep } from '@/components/onboarding/TeamInviteStep';
 import { KnowledgeBaseUploadStep } from '@/components/onboarding/KnowledgeBaseUploadStep';
 import { OnboardingData } from '@/types/onboarding';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 const STEPS_CONFIG = [
-  { step: 1, label: 'Welcome', progress: 20 },
-  { step: 2, label: 'Company Info', progress: 40 },
-  { step: 3, label: 'Skills', progress: 60 },
-  { step: 4, label: 'Team', progress: 80 },
-  { step: 5, label: 'Knowledge Base', progress: 100 },
+  { step: 1, label: 'Welcome', progress: 17 },
+  { step: 2, label: 'Company Info', progress: 33 },
+  { step: 3, label: 'Skills', progress: 50 },
+  { step: 4, label: 'Team', progress: 67 },
+  { step: 5, label: 'Knowledge Base', progress: 83 },
+  { step: 6, label: 'Plan', progress: 100 },
 ];
 
 export default function OnboardingPage() {
@@ -39,16 +41,15 @@ export default function OnboardingPage() {
     skills: [],
     teamMembers: [],
     knowledgeBaseFiles: [],
+    selectedPlanCode: null,
   });
 
-  // Auth check - redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
     }
   }, [isAuthenticated, router]);
 
-  // Onboarding check - redirect to dashboard if already onboarded
   useEffect(() => {
     if (user?.onboarding_completed) {
       router.push('/dashboard');
@@ -61,7 +62,6 @@ export default function OnboardingPage() {
     if (currentStepIndex < STEPS_CONFIG.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
-      // Final step - complete onboarding
       handleComplete();
     }
   };
@@ -73,8 +73,13 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = () => {
+    if (!onboardingData.selectedPlanCode) {
+      return;
+    }
+
     completeOnboardingMutation.mutate({
       company_name: onboardingData.companyInfo.name,
+      selected_plan_code: onboardingData.selectedPlanCode,
       industry: onboardingData.companyInfo.industry || undefined,
       company_size: onboardingData.companyInfo.companySize || undefined,
       skills: onboardingData.skills,
@@ -89,25 +94,26 @@ export default function OnboardingPage() {
 
   const canProceed = () => {
     switch (currentStepIndex) {
-      case 0: // Welcome
+      case 0:
         return true;
-      case 1: // Company Info
+      case 1:
         return onboardingData.companyInfo.name.trim().length > 0;
-      case 2: // Skills
-        return true; // Optional step
-      case 3: // Team
-        return true; // Optional step
-      case 4: // Knowledge Base
-        return true; // Optional step
+      case 2:
+      case 3:
+      case 4:
+        return true;
+      case 5:
+        return Boolean(onboardingData.selectedPlanCode);
       default:
         return true;
     }
   };
 
+  const isPlanStep = currentStepIndex === 5;
+
   return (
     <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-8 text-center">
           <div className="mb-6 flex items-center justify-center gap-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
@@ -116,20 +122,19 @@ export default function OnboardingPage() {
             <h1 className="text-2xl font-bold text-gray-900">ProposalIQ</h1>
           </div>
 
-          {/* Progress */}
           <div className="mx-auto max-w-2xl">
             <div className="mb-2 flex items-center justify-between text-sm text-gray-600">
-              <span>Step {currentStep.step} of {TOTAL_STEPS}</span>
+              <span>
+                Step {currentStep.step} of {TOTAL_STEPS} — {currentStep.label}
+              </span>
               <span>{currentStep.progress}% Complete</span>
             </div>
             <Progress value={currentStep.progress} className="h-2" />
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="mx-auto max-w-3xl">
+        <div className={isPlanStep ? 'mx-auto max-w-6xl' : 'mx-auto max-w-3xl'}>
           <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-            {/* Step Content */}
             <div className="mb-8">
               {currentStepIndex === 0 && <WelcomeStep />}
               {currentStepIndex === 1 && (
@@ -164,9 +169,16 @@ export default function OnboardingPage() {
                   }
                 />
               )}
+              {currentStepIndex === 5 && (
+                <PlanSelectionStep
+                  selectedPlanCode={onboardingData.selectedPlanCode}
+                  onChange={(selectedPlanCode) =>
+                    setOnboardingData({ ...onboardingData, selectedPlanCode })
+                  }
+                />
+              )}
             </div>
 
-            {/* Navigation */}
             <div className="flex items-center justify-between border-t border-gray-200 pt-6">
               <Button
                 variant="ghost"

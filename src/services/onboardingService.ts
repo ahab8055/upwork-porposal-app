@@ -16,6 +16,7 @@ export interface KnowledgeBaseFile {
 
 export interface OnboardingCompleteRequest {
   company_name: string;
+  selected_plan_code: string;
   industry?: string;
   company_size?: string;
   skills: string[];
@@ -28,6 +29,8 @@ export interface OnboardingCompleteResponse {
   success: boolean;
   message: string;
   workspace_id?: string;
+  selected_plan_code?: string;
+  requires_checkout?: boolean;
 }
 
 // Map frontend categories to backend document types
@@ -47,6 +50,7 @@ export const onboardingService = {
     const { knowledge_base_files, team_invites, ...onboardingData } = data;
     const onboardingFormData = new FormData();
     onboardingFormData.append("company_name", onboardingData.company_name);
+    onboardingFormData.append("selected_plan_code", onboardingData.selected_plan_code);
     if (onboardingData.industry) {
       onboardingFormData.append("industry", onboardingData.industry);
     }

@@ -53,6 +53,13 @@ export const billingService = {
     return response.data;
   },
 
+  startFreeTrial: async (): Promise<WorkspaceSubscriptionDetail> => {
+    const response = await apiClient.post<WorkspaceSubscriptionDetail>(
+      "/workspace-subscription/trial/start"
+    );
+    return response.data;
+  },
+
   createBillingPortalSession: async (
     payload?: CreateBillingPortalSessionRequest
   ): Promise<BillingPortalSessionResponse> => {

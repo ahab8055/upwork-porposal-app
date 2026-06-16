@@ -42,7 +42,9 @@ interface PricingCardProps {
   isAuthenticated?: boolean;
   isOwner?: boolean;
   onSelectPlan?: (plan: BillingPlanItem) => void;
+  onStartTrial?: () => void;
   isCheckoutLoading?: boolean;
+  isTrialLoading?: boolean;
   checkoutPlanCode?: string | null;
 }
 
@@ -65,11 +67,11 @@ function getCtaLabel(
   }
 
   if (plan.plan_code === "free_trial") {
-    return isAuthenticated ? "Included with signup" : "Start Free Trial";
+    return isAuthenticated ? "Start Free Trial" : "Start Free Trial";
   }
 
   if (!isAuthenticated) {
-    return plan.plan_code === "free_trial" ? "Start Free Trial" : "Subscribe";
+    return "Subscribe";
   }
 
   if (!isOwner) {
@@ -77,10 +79,14 @@ function getCtaLabel(
   }
 
   if (plan.is_purchasable) {
-    return `Upgrade to ${plan.name}`;
+    return `Subscribe to ${plan.name}`;
   }
 
-  return "Coming Soon";
+  if (plan.is_stripe_linked) {
+    return `Subscribe to ${plan.name}`;
+  }
+
+  return "Subscribe";
 }
 
 export function PricingCard({
@@ -90,7 +96,9 @@ export function PricingCard({
   isAuthenticated = false,
   isOwner = false,
   onSelectPlan,
+  onStartTrial,
   isCheckoutLoading = false,
+  isTrialLoading = false,
   checkoutPlanCode,
 }: PricingCardProps) {
   const isPopular = plan.plan_code === POPULAR_PLAN_CODE;
@@ -112,14 +120,23 @@ export function PricingCard({
 
   const isEnterprise = plan.plan_code === "enterprise";
   const isLoadingThisPlan =
-    isCheckoutLoading && checkoutPlanCode === plan.plan_code;
+    (isCheckoutLoading && checkoutPlanCode === plan.plan_code) ||
+    (isTrialLoading && plan.plan_code === "free_trial");
 
   const canCheckout =
     isAuthenticated &&
     isOwner &&
-    plan.is_purchasable &&
     !isCurrent &&
+    plan.plan_code !== "free_trial" &&
+    plan.plan_code !== "enterprise" &&
     onSelectPlan;
+
+  const canStartTrial =
+    isAuthenticated &&
+    isOwner &&
+    plan.plan_code === "free_trial" &&
+    !isCurrent &&
+    onStartTrial;
 
   const isDisabled =
     isCurrent ||
@@ -127,14 +144,13 @@ export function PricingCard({
     (isAuthenticated &&
       !isOwner &&
       plan.plan_code !== "enterprise" &&
-      plan.plan_code !== "free_trial") ||
-    (isAuthenticated &&
-      isOwner &&
-      !plan.is_purchasable &&
-      plan.plan_code !== "enterprise" &&
       plan.plan_code !== "free_trial");
 
   const handleClick = () => {
+    if (canStartTrial) {
+      onStartTrial();
+      return;
+    }
     if (canCheckout) {
       onSelectPlan(plan);
     }
@@ -148,7 +164,7 @@ export function PricingCard({
         !isPopular && !isCurrent && !isEnterprise && "bg-slate-900 hover:bg-slate-800"
       )}
       variant={isCurrent ? "outline" : isEnterprise ? "outline" : "default"}
-      disabled={isDisabled && !isEnterprise}
+      disabled={isDisabled && !isEnterprise && !canStartTrial}
       onClick={handleClick}
       data-testid={`pricing-${plan.plan_code}-btn`}
     >

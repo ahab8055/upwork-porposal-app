@@ -6,6 +6,7 @@ import { CheckoutStatusBanner } from "@/components/billing/CheckoutStatusBanner"
 import {
   useBillingPlans,
   useStartCheckout,
+  useStartFreeTrial,
   useWorkspaceSubscription,
 } from "@/hooks/useBilling";
 import { useCheckoutReturn } from "@/hooks/useCheckoutReturn";
@@ -37,6 +38,7 @@ export function PricingPageContent({
   const { data: subscription } = useWorkspaceSubscription(useLiveData);
   const { startCheckout, isStartingCheckout, checkoutPlanCode, checkoutError } =
     useStartCheckout();
+  const { mutate: startFreeTrial, isPending: isStartingTrial } = useStartFreeTrial();
   const { checkoutStatus, pendingPlanCode, dismissBanner } = useCheckoutReturn();
   const autoCheckoutAttempted = useRef(false);
 
@@ -155,7 +157,9 @@ export function PricingPageContent({
         isAuthenticated={isAuthenticated}
         isOwner={isOwner}
         onSelectPlan={handleSelectPlan}
+        onStartTrial={() => startFreeTrial()}
         isCheckoutLoading={isStartingCheckout}
+        isTrialLoading={isStartingTrial}
         checkoutPlanCode={checkoutPlanCode}
       />
     </div>

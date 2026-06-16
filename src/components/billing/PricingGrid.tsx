@@ -12,7 +12,9 @@ interface PricingGridProps {
   isAuthenticated?: boolean;
   isOwner?: boolean;
   onSelectPlan?: (plan: BillingPlanItem) => void;
+  onStartTrial?: () => void;
   isCheckoutLoading?: boolean;
+  isTrialLoading?: boolean;
   checkoutPlanCode?: string | null;
 }
 
@@ -24,7 +26,9 @@ export function PricingGrid({
   isAuthenticated = false,
   isOwner = false,
   onSelectPlan,
+  onStartTrial,
   isCheckoutLoading = false,
+  isTrialLoading = false,
   checkoutPlanCode,
 }: PricingGridProps) {
   if (isLoading) {
@@ -54,7 +58,9 @@ export function PricingGrid({
           isAuthenticated={isAuthenticated}
           isOwner={isOwner}
           onSelectPlan={onSelectPlan}
+          onStartTrial={onStartTrial}
           isCheckoutLoading={isCheckoutLoading}
+          isTrialLoading={isTrialLoading}
           checkoutPlanCode={checkoutPlanCode}
         />
       ))}
